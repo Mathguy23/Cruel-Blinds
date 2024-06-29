@@ -31,33 +31,6 @@ inject = function(self)
 end
 })
 
-local Backapply_to_runRef = Back.apply_to_run
-function Back.apply_to_run(self)
-    Backapply_to_runRef(self)
-    if self.effect.config.cbl_insane then
-        G.E_MANAGER:add_event(Event({
-            func = function()
-                for i=1,40 do
-                    add_joker('j_cry_exponentia', nil, nil)
-                end
-                for i=1,4 do
-                    add_joker('j_cry_iterum', nil, nil)
-                end
-                for i=1,2 do
-                    add_joker('j_cry_canvas', nil, nil)
-                end
-                for i=1,1 do
-                    add_joker('j_cry_Double Scale', nil, nil)
-                end
-                for i=1,10 do
-                    add_joker('j_four_fingers', nil, nil)
-                end
-                return true
-            end
-        }))
-    end
-end
-
 SMODS.Blind	{loc_txt = {
     name = 'The Mind',
     text = { 'Only one card', 'face up' }
@@ -128,15 +101,24 @@ boss = {min = 3, max = 10, hardcore = true},
 boss_colour = HEX("2222BB"),
 atlas = "blinds",
 pos = { x = 0, y = 2},
-vars = {"(most played poker hand)"},
+vars = {"(most played hand)"},
 dollars = 5,
 mult = 2,
 loc_vars = function(self)
     result = {localize(G.GAME.current_round.most_played_poker_hand, 'poker_hands')}
-    if G.GAME.current_round.most_played_poker_hand == "High Card" then
-        result = {localize("Pair", 'poker_hands')}
-    end
+    -- if G.GAME.current_round.most_played_poker_hand == "High Card" then
+    --     result = {localize("Pair", 'poker_hands')}
+    -- end
     return {vars = result}
+end,
+debuff_hand = function(self, cards, hand, handname, check)
+    if (G.GAME.current_round.most_played_poker_hand == 'High Card') and (handname == "High Card") and not G.GAME.blind.disabled then
+        return true
+    end
+    return false
+end,
+get_loc_debuff_text = function(self)
+    return "You must play a poker hand."
 end
 }
 
@@ -609,7 +591,7 @@ drawn_to_hand = function(self)
                 G.GAME.blind:debuff_card(v)
             end
         elseif (j == "Violet Vessel") then
-            blG.GAME.blindind.chips = G.GAME.chips + math.floor((G.GAME.blind.chips - G.GAME.chips)/3)
+            G.GAME.blind.chips = G.GAME.chips + math.floor((G.GAME.blind.chips - G.GAME.chips)/3)
             if (G.GAME.blind.chips == G.GAME.chips) then
                 G.GAME.blind.chips = G.GAME.blind.chips + 1
             end
@@ -839,6 +821,30 @@ loc_vars = function(self)
 end,
 }
 
+SMODS.Atlas({ key = "fire_blind", atlas_table = "ANIMATION_ATLAS", path = "fire.png", px = 34, py = 34, frames = 21 })
+
+SMODS.Blind	{loc_txt = {
+    name = 'The Fire',
+    text = { '0 base Chips and', '1 base Mult' }
+},
+key = 'fire',
+name = "The Fire",
+config = {},
+boss = {min = 4, max = 10, hardcore = true}, 
+boss_colour = HEX("FFA869"),
+atlas = "fire_blind",
+pos = { x = 0, y = 0},
+vars = {},
+dollars = 5,
+mult = 2,
+modify_hand = function(self, cards, poker_hands, text, mult, hand_chips)
+    if (mult ~= 1) or (hand_chips ~= 0) then
+        return 1, 0, true
+    end
+    return 1, 0, false
+end
+}
+
 function create_UIBox_blind_choice(type, run_info)
     if not G.GAME.blind_on_deck then
         G.GAME.blind_on_deck = 'Small'
@@ -927,9 +933,9 @@ function create_UIBox_blind_choice(type, run_info)
     if loc_name == "Daring Group" then
         loc_target = localize { type = 'raw_descriptions', key = blind_choice.config.key, set = 'Blind', vars = { "???", "???", "???" } }
     end
-    if loc_name == "The Steal" and (G.GAME.current_round.most_played_poker_hand == 'High Card') then
-        loc_target = localize { type = 'raw_descriptions', key = blind_choice.config.key, set = 'Blind', vars = { localize("Pair", 'poker_hands') } }
-    end
+    -- if loc_name == "The Steal" and (G.GAME.current_round.most_played_poker_hand == 'High Card') then
+    --     loc_target = localize { type = 'raw_descriptions', key = blind_choice.config.key, set = 'Blind', vars = { localize("Pair", 'poker_hands') } }
+    -- end
     if loc_name == "The Mist"then
         loc_target = localize { type = 'raw_descriptions', key = blind_choice.config.key, set = 'Blind', vars = { 3*G.GAME.probabilities.normal, 4 } }
     end
@@ -1082,11 +1088,23 @@ function create_UIBox_blind_choice(type, run_info)
     return t
 end
 
+local old_get_poker_hand_info = G.FUNCS.get_poker_hand_info
+function G.FUNCS.get_poker_hand_info(_cards)
+	local text, loc_disp_text, poker_hands, scoring_hand, disp_text = old_get_poker_hand_info(_cards)
+    if (text =='High Card') and G.GAME.blind and (G.GAME.blind.name == "The Steal") and not G.GAME.blind.disabled and (G.GAME.current_round.most_played_poker_hand == "High Card") then
+        disp_text = 'No Hand'
+        loc_disp_text = localize(disp_text, 'poker_hands')
+    end
+	return text, loc_disp_text, poker_hands, scoring_hand, disp_text
+end
+
 function SMODS.current_mod.process_loc_text()
     G.localization.misc.challenge_names["c_very_cruel"] = "Very Cruel"
+    G.localization.misc.challenge_names["c_very_crueler"] = "Cruely Cruel"
     G.localization.misc.v_text.ch_c_cruel_blinds = {"All blinds past ante {C:attention}1{} are {C:attention}cruel blinds{}."}
     G.localization.descriptions.Other.puzzled = {name = "Puzzled", text = {"Randomize rank and suit", "each hand played."}}
     G.localization.misc.labels.puzzled = "Puzzled"
+    G.localization.misc.poker_hands["No Hand"] = "No Hand"
 end
 
 table.insert(G.CHALLENGES,#G.CHALLENGES+1,
@@ -1097,6 +1115,43 @@ table.insert(G.CHALLENGES,#G.CHALLENGES+1,
                 {id = 'cruel_blinds'}
             },
             modifiers = {
+            }
+        },
+        jokers = {       
+        },
+        consumeables = {
+        },
+        vouchers = {
+        },
+        deck = {
+            type = 'Challenge Deck',
+        },
+        restrictions = {
+            banned_cards = {
+                {id = 'j_chicot'},
+                {id = 'j_luchador'},
+                {id = 'v_directors_cut'},
+            },
+            banned_tags = {
+                {id = 'tag_boss'}
+            },
+            banned_other = {
+            }
+        }
+    }
+)
+
+table.insert(G.CHALLENGES,#G.CHALLENGES+1,
+    {name = 'Cruely Cruel',
+        id = 'c_very_crueler',
+        rules = {
+            custom = {
+                {id = 'cruel_blinds'},
+                {id = 'no_reward_specific', value = 'Small'},
+                {id = 'no_reward_specific', value = 'Big'}
+            },
+            modifiers = {
+                {id = 'joker_slots', value = 3}
             }
         },
         jokers = {       
