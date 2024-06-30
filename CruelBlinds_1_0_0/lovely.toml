@@ -58,7 +58,7 @@ match_indent = true
 [[patches]]
 [patches.pattern]
 target = 'back.lua'
-pattern = '''if (self.name == 'Plasma Deck' or self.name == 'cry-Antimatter') and args.context == 'final_scoring_step' then'''
+pattern = '''if self.name == 'Plasma Deck' and args.context == 'final_scoring_step' then'''
 position = 'before'
 payload = '''if G.GAME.blind and (G.GAME.blind.name == 'Obscure Overshoot') and not (G.GAME.blind.disabled) and (args.context == 'final_scoring_step') then
     local upper = math.floor(args.chips*args.mult)
@@ -86,7 +86,7 @@ pattern = 'return results'
 position = 'before'
 payload = '''if G.GAME.blind and (G.GAME.blind.name == "The Steal") and not G.GAME.blind.disabled then
         if G.GAME.current_round.most_played_poker_hand == "High Card" then
-            results["Pair"] = {}
+
         else
             results[G.GAME.current_round.most_played_poker_hand] = {}
         end
