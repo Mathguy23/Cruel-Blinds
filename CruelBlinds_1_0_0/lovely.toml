@@ -64,7 +64,7 @@ payload = '''if G.GAME.blind and (G.GAME.blind.name == 'Obscure Overshoot') and 
     local upper = math.floor(args.chips*args.mult)
     local base = G.GAME.chips
     local overshoot = math.floor((((base + upper)/G.GAME.blind.chips) - 1) * 20)
-    if (overshoot ~= 0) then
+    if (math.max(0, overshoot) ~= 0) then
         G.E_MANAGER:add_event(Event({
             func = (function()
                 G.GAME.blind.chips = G.GAME.blind.chips * (1 + (0.08 * overshoot))
