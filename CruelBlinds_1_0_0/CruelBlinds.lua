@@ -845,6 +845,35 @@ modify_hand = function(self, cards, poker_hands, text, mult, hand_chips)
 end
 }
 
+SMODS.Atlas({ key = "checker_blind", atlas_table = "ANIMATION_ATLAS", path = "checker.png", px = 34, py = 34, frames = 21 })
+
+SMODS.Blind	{loc_txt = {
+    name = 'The Checker',
+    text = { 'Every other rank', 'is debuffed' }
+},
+key = 'checker',
+name = "The Checker",
+config = {},
+boss = {min = 1, max = 10, hardcore = true}, 
+boss_colour = HEX("525252"),
+atlas = "checker_blind",
+pos = { x = 0, y = 0},
+vars = {},
+dollars = 5,
+mult = 2,
+set_blind = function(self, reset, silent)
+    if not reset then
+        G.GAME.blind.config.even_parity = (pseudorandom("parity") > 0.5)
+    end
+end,
+debuff_card = function(self, card, from_blind)
+    if (card.area ~= G.jokers) and not G.GAME.blind.disabled and card.base.id and not ((card.base.id % 2 == 0) == G.GAME.blind.config.even_parity) then
+        return true
+    end
+    return false
+end
+}
+
 function create_UIBox_blind_choice(type, run_info)
     if not G.GAME.blind_on_deck then
         G.GAME.blind_on_deck = 'Small'

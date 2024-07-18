@@ -113,7 +113,8 @@ pattern = 'function Blind:load(blindTable)'
 position = 'after'
 payload = '''self.config.blinds = blindTable.blinds or {}
 
-    self.config.joker_sold = blindTable.didSell or false'''
+    self.config.joker_sold = blindTable.didSell or false
+    self.config.even_parity = blindTable.parity or false'''
 match_indent = true
 
 [[patches]]
@@ -122,7 +123,8 @@ target = 'blind.lua'
 pattern = 'return blindTable'
 position = 'before'
 payload = '''blindTable.blinds = self.config.blinds
-    blindTable.didSell = self.config.joker_sold'''
+    blindTable.didSell = self.config.joker_sold
+    blindTable.parity = self.config.even_parity'''
 match_indent = true
 
 [[patches]]
