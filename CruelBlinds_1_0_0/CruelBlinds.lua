@@ -697,6 +697,14 @@ debuff_card = function(self, card, from_blind)
         return true
     end
     return false
+end,
+in_pool = function(self)
+    for i, j in pairs(G.jokers.cards) do
+        if not ((j.config.center.rarity == 1) or (j.config.center.rarity == 2)) then
+            return true
+        end
+    end
+    return false
 end
 }
 
