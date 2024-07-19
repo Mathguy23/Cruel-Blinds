@@ -22,8 +22,8 @@ match_indent = true
 [[patches]]
 [patches.pattern]
 target = 'functions/state_events.lua'
-pattern = 'local hand_space = e or math.min(#G.deck.cards, G.hand.config.card_limit - #G.hand.cards)'
-position = 'after'
+pattern = '''if G.GAME.blind.name == 'The Serpent' and'''
+position = 'before'
 payload = '''if G.GAME.blind and (G.GAME.blind.name == "The Jaw") and not G.GAME.blind.disabled and (G.GAME.current_round.hands_played > 0 or G.GAME.current_round.discards_used > 0) then
         if ((G.GAME.dollars - G.GAME.bankrupt_at) < hand_space) then
             hand_space = (G.GAME.dollars - G.GAME.bankrupt_at)
@@ -201,10 +201,14 @@ match_indent = true
 [[patches]]
 [patches.pattern]
 target = 'blind.lua'
-pattern = '''if self.name == "The Hook" then'''
-position = 'before'
+pattern = '''function Blind:press_play()'''
+position = 'after'
 payload = '''G.E_MANAGER:add_event(Event({trigger = 'after', delay = 0.2, func = function()
+    if not G.GAME.monitor_ranks_played then
+        G.GAME.monitor_ranks_played = {}
+    end
     for k, v in ipairs(G.play.cards) do
+        G.GAME.monitor_ranks_played[v.base.value] = (G.GAME.monitor_ranks_played[v.base.value] or 0) + 1
         if v.ability.puzzled and not v.debuff then
             local suits = {'H', 'D', 'S', 'C'}
             local ranks = {'A', '2', '3', '4', '5', '6', '7', '8', '9', 'T', 'J', 'Q', 'K'}
@@ -213,6 +217,7 @@ payload = '''G.E_MANAGER:add_event(Event({trigger = 'after', delay = 0.2, func =
             G.E_MANAGER:add_event(Event({func = function() play_sound('tarot1', math.random()*0.1 + 0.55, 0.42);v:set_base(G.P_CARDS[suit.."_"..rank]);v:juice_up(); return true end }))
             delay(0.23)
         end
+
     end
     for k, v in ipairs(G.hand.cards) do
         if v.ability.puzzled and not v.debuff then
@@ -224,7 +229,8 @@ payload = '''G.E_MANAGER:add_event(Event({trigger = 'after', delay = 0.2, func =
             delay(0.23)
         end
     end
-return true end }))'''
+return true end }))
+'''
 match_indent = true
 
 [[patches]]
@@ -249,4 +255,69 @@ target = 'functions/UI_definitions.lua'
 pattern = '''pinned_left = G.C.ORANGE,'''
 position = 'after'
 payload = '''puzzled = G.C.PERISHABLE,'''
+match_indent = true
+
+[[patches]]
+[patches.pattern]
+target = 'game.lua'
+pattern = '''most_played_poker_hand = 'High Card','''
+position = 'after'
+payload = '''least_played_rank = '2',
+least_played_rank2 = '3','''
+match_indent = true
+
+[[patches]]
+[patches.pattern]
+target = 'functions/state_events.lua'
+pattern = '''G.GAME.current_round.most_played_poker_hand = _handname'''
+position = 'after'
+payload = '''if not G.GAME.monitor_ranks_played then
+    G.GAME.monitor_ranks_played = {}
+end
+local ranks_held = {}
+for i, j in pairs(G.playing_cards) do
+    if (not (j.ability.effect == 'Stone Card' or j.config.center.no_rank)) or j.vampired then
+        if not j.ability.puzzled then
+            ranks_held[j.base.value] = true
+        end
+    end
+end
+local rank_length = 0
+local firstI = 0
+local secondI = 0
+for i, j in pairs(ranks_held) do
+    if firstI == 0 then
+        firstI = i
+    elseif secondI == 0 then
+        secondI = i
+    end
+    rank_length = rank_length + 1
+end
+if rank_length > 1 then
+    local min = G.GAME.monitor_ranks_played[firstI] or 0
+    local min_rank = ranks_held[firstI]
+    local min2 = G.GAME.monitor_ranks_played[secondI] or 0
+    local min_rank2 = ranks_held[secondI]
+    if min2 < min then
+        min, min2 = min2, min
+        min_rank, min_rank2 = min_rank2, min_rank
+    end
+    for i, j in pairs(ranks_held) do
+        if (G.GAME.monitor_ranks_played[i] or 0) < min then
+            min2 = min
+            min_rank2 = min_rank
+            min = G.GAME.monitor_ranks_played[i] or 0
+            min_rank = i
+        elseif (G.GAME.monitor_ranks_played[i] or 0) < min2 then
+            min2 = G.GAME.monitor_ranks_played[i] or 0
+            min_rank2 = i
+        end
+    end
+    G.GAME.current_round.least_played_rank = min_rank
+    G.GAME.current_round.least_played_rank2 = min_rank2
+elseif rank_length == 1 then
+    local min_rank = firstI
+    G.GAME.current_round.least_played_rank = min_rank
+    G.GAME.current_round.least_played_rank2 = min_rank
+end'''
 match_indent = true

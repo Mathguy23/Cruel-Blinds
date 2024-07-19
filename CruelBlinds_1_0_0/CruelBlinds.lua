@@ -874,6 +874,71 @@ debuff_card = function(self, card, from_blind)
 end
 }
 
+SMODS.Atlas({ key = "chime_blind", atlas_table = "ANIMATION_ATLAS", path = "chime.png", px = 34, py = 34, frames = 21 })
+
+SMODS.Blind	{loc_txt = {
+    name = 'Focused Chime',
+    text = { 'Each hand must contain', 'a scoring #1# or #2#' }
+},
+key = 'chime',
+name = "Focused Chime",
+config = {},
+boss = {min = 1, max = 10, hardcore = true, showdown = true}, 
+showdown = true,
+boss_colour = HEX("00E8D8"),
+atlas = "chime_blind",
+pos = { x = 0, y = 0},
+vars = {"(least played rank)", "(2nd least played rank)"},
+dollars = 8,
+mult = 2,
+loc_vars = function(self)
+    local display = G.GAME.current_round.least_played_rank
+    if display == 'T' then
+        display = '10'
+    end
+    if display == 'J' then
+        display = 'Jack'
+    end
+    if display == 'Q' then
+        display = 'Queen'
+    end
+    if display == 'K' then
+        display = 'King'
+    end
+    if display == 'A' then
+        display = 'Ace'
+    end
+    local display2 = G.GAME.current_round.least_played_rank2
+    if display2 == 'T' then
+        display2 = '10'
+    end
+    if display2 == 'J' then
+        display2 = 'Jack'
+    end
+    if display2 == 'Q' then
+        display2 = 'Queen'
+    end
+    if display2 == 'K' then
+        display2 = 'King'
+    end
+    if display2 == 'A' then
+        display2 = 'Ace'
+    end
+    return {vars = {localize(display, 'ranks'), localize(display2, 'ranks')}}
+end,
+debuff_hand = function(self, cards, hand, handname, check)
+    local _, _2, _3, scoring = G.FUNCS.get_poker_hand_info(cards)
+    if not G.GAME.blind.disabled then
+        for i, j in ipairs(scoring) do
+            if ((not (j.ability.effect == 'Stone Card' or j.config.center.no_rank)) or j.vampired) and (j.base.value == G.GAME.current_round.least_played_rank) or (j.base.value == G.GAME.current_round.least_played_rank2) then
+                return false
+            end
+        end
+    end
+    return true
+end,
+}
+
 function create_UIBox_blind_choice(type, run_info)
     if not G.GAME.blind_on_deck then
         G.GAME.blind_on_deck = 'Small'
@@ -970,6 +1035,41 @@ function create_UIBox_blind_choice(type, run_info)
     end
     if loc_name == "The Puzzle" then
         loc_target = localize { type = 'raw_descriptions', key = blind_choice.config.key, set = 'Blind', vars = { G.GAME.probabilities.normal, 3 } }
+    end
+    if loc_name == "Focused Chime" then
+        local display = G.GAME.current_round.least_played_rank
+        if display == 'T' then
+            display = '10'
+        end
+        if display == 'J' then
+            display = 'Jack'
+        end
+        if display == 'Q' then
+            display = 'Queen'
+        end
+        if display == 'K' then
+            display = 'King'
+        end
+        if display == 'A' then
+            display = 'Ace'
+        end
+        local display2 = G.GAME.current_round.least_played_rank2
+        if display2 == 'T' then
+            display2 = '10'
+        end
+        if display2 == 'J' then
+            display2 = 'Jack'
+        end
+        if display2 == 'Q' then
+            display2 = 'Queen'
+        end
+        if display2 == 'K' then
+            display2 = 'King'
+        end
+        if display2 == 'A' then
+            display2 = 'Ace'
+        end
+        loc_target = localize { type = 'raw_descriptions', key = blind_choice.config.key, set = 'Blind', vars = {localize(display, 'ranks'), localize(display2, 'ranks')} }
     end
     local text_table = loc_target
     local blind_col = get_blind_main_colour(type)
