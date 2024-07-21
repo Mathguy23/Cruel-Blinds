@@ -321,3 +321,44 @@ elseif rank_length == 1 then
     G.GAME.current_round.least_played_rank2 = min_rank
 end'''
 match_indent = true
+
+[[patches]]
+[patches.pattern]
+target = 'functions/state_events.lua'
+pattern = '''G.FUNCS.draw_from_play_to_discard()'''
+position = 'at'
+payload = '''
+if G.GAME.blind and G.GAME.blind.refunded then
+    refund_played()
+else
+    G.FUNCS.draw_from_play_to_discard()
+end
+'''
+match_indent = true
+
+[[patches]]
+[patches.pattern]
+target = 'functions/state_events.lua'
+pattern = '''v.ability.played_this_ante = nil'''
+position = 'at'
+payload = '''
+if (v.ability.played_this_ante ~= nil) then
+    v.ability.played_this_ante = nil
+    v.ability.played_last_ante = true
+else
+    v.ability.played_last_ante = nil
+end
+'''
+match_indent = true
+
+[[patches]]
+[patches.pattern]
+target = 'functions/state_events.lua'
+pattern = '''table.sort(scoring_hand, function (a, b) return a.T.x < b.T.x end )'''
+position = 'before'
+payload = '''
+if G.GAME.blind and G.GAME.blind.name == "The Card" and not G.GAME.blind.disabled then
+    scoring_hand = {}
+end
+'''
+match_indent = true
