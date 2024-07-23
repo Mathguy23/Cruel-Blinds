@@ -31,6 +31,8 @@ SMODS.Atlas({ key = "broken", atlas_table = "ASSET_ATLAS", path = "broken.png", 
     end
 })
 
+SMODS.Atlas({ key = "decks", atlas_table = "ASSET_ATLAS", path = "Backs.png", px = 71, py = 95})
+
 SMODS.Blind	{
     loc_txt = {
         name = 'The Mind',
@@ -1190,6 +1192,28 @@ table.insert(G.CHALLENGES,#G.CHALLENGES+1,
     }
 )
 
+SMODS.Back {
+    key = 'agony',
+    loc_txt = {
+        name = "Agony Deck",
+        text = {
+            "Start with {C:attention,T:v_directors_cut}Director's Cut{}",
+            "Win on {C:attention}Ante 9{}",
+            "All {C:attention}Boss Blinds{} are",
+            "{C:attention}Cruel Blinds{}",
+        }
+    },
+    name = "Agony Deck",
+    pos = { x = 0, y = 0 },
+    atlas = 'decks',
+    apply = function(self)
+        G.GAME.modifiers["cruel_blinds_all"]= true
+        G.GAME.win_ante = (G.GAME.win_ante or 8) + 1
+        G.GAME.used_vouchers['v_directors_cut'] = true
+        G.GAME.starting_voucher_count = (G.GAME.starting_voucher_count or 0) + 1
+        Card.apply_to_run(nil, G.P_CENTERS['v_directors_cut'])
+    end
+}
 
 ----------------------------------------------
 ------------MOD CODE END----------------------
