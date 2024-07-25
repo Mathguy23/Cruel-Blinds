@@ -4,7 +4,7 @@
 --- PREFIX: cruel
 --- MOD_AUTHOR: [mathguy]
 --- MOD_DESCRIPTION: Cruel Blinds
---- VERSION: 1.2.0
+--- VERSION: 1.2.2
 ----------------------------------------------
 ------------MOD CODE -------------------------
 
