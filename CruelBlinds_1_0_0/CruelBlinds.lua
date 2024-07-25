@@ -4,7 +4,7 @@
 --- PREFIX: cruel
 --- MOD_AUTHOR: [mathguy]
 --- MOD_DESCRIPTION: Cruel Blinds
---- VERSION: 1.2.1
+--- VERSION: 1.2.0
 ----------------------------------------------
 ------------MOD CODE -------------------------
 
@@ -469,6 +469,9 @@ SMODS.Blind	{
             keyTable['Crimson Heart'] = "bl_final_heart"
             keyTable['Verdant Leaf'] = "bl_final_leaf"
             keyTable['Violet Vessel'] = "bl_final_vessel"
+            keyTable['Lavender Loop'] = "bl_cry_lavender_loop"
+            keyTable['Vermillion Virus'] = "bl_cry_vermillion_virus"
+            keyTable['Sapphire Stamp'] = "bl_cry_sapphire_stamp"
             return {vars = {localize{type ='name_text', key = keyTable[G.GAME.blind.config.blinds[1]] or '', set = 'Blind'},
                         localize{type ='name_text', key = keyTable[G.GAME.blind.config.blinds[2]] or '', set = 'Blind'},
                         localize{type ='name_text', key = keyTable[G.GAME.blind.config.blinds[3]] or '', set = 'Blind'} }}
@@ -498,6 +501,7 @@ SMODS.Blind	{
                     return true end })) 
                 end
             end
+
         end
     end,
     drawn_to_hand = function(self)
@@ -512,6 +516,19 @@ SMODS.Blind	{
         indexes['Verdant Leaf'] = 4
         indexes['Violet Vessel'] = 5
         local options = {'Amber Acorn', 'Cerulean Bell', 'Crimson Heart', 'Verdant Leaf', 'Violet Vessel'}
+        if G.P_BLINDS['bl_cry_lavender_loop'] then
+            G.GAME.blind.no_loop_flag = true
+            table.insert(options, 'Lavender Loop')
+            indexes['Lavender Loop'] = #options
+        end
+        if G.P_BLINDS['bl_cry_vermillion_virus'] then
+            table.insert(options, 'Vermillion Virus')
+            indexes['Vermillion Virus'] = #options
+        end
+        if G.P_BLINDS['bl_cry_sapphire_stamp'] then
+            table.insert(options, 'Sapphire Stamp')
+            indexes['Sapphire Stamp'] = #options
+        end
         G.GAME.blind.config.blinds = {}
         local blind1 = pseudorandom_element(options, pseudoseed('daring'))
         table.insert(G.GAME.blind.config.blinds, blind1)
@@ -615,6 +632,8 @@ SMODS.Blind	{
                     G.GAME.blind.chips = G.GAME.blind.chips + 1
                 end
                 G.GAME.blind.chip_text = number_format(G.GAME.blind.chips)
+            elseif (j == "Sapphire Stamp") then
+                G.hand.config.highlighted_limit = G.hand.config.highlighted_limit - 1
             end
         end
         for i, j in ipairs(news) do
@@ -666,9 +685,14 @@ SMODS.Blind	{
                 G.GAME.blind.chips = G.GAME.chips + ((G.GAME.blind.chips - G.GAME.chips)*3)
                 G.GAME.blind.chip_text = number_format(G.GAME.blind.chips)
                 G.GAME.blind:set_text()
+            elseif (j == "Sapphire Stamp") then
+                G.hand.config.highlighted_limit = G.hand.config.highlighted_limit + 1
             end
         end
         G.GAME.blind:set_text()
+        if G.P_BLINDS['bl_cry_lavender_loop'] then
+            G.GAME.blind.no_loop_flag = nil
+        end
     end,
     debuff_card = function(self, card, from_blind)
         if ((G.GAME.blind.config.blinds[1] == 'Crimson Heart') or (G.GAME.blind.config.blinds[2] == 'Crimson Heart') or (G.GAME.blind.config.blinds[3] == 'Crimson Heart')) and not G.GAME.blind.disabled and card.area == G.jokers then 
@@ -691,10 +715,48 @@ SMODS.Blind	{
                 v.ability.forced_selection = nil
             end
         end
+        if (G.GAME.blind.config.blinds[1] == 'Sapphire Stamp') or (G.GAME.blind.config.blinds[2] == 'Sapphire Stamp') or (G.GAME.blind.config.blinds[3] == 'Sapphire Stamp') then
+            G.hand.config.highlighted_limit = G.hand.config.highlighted_limit - 1
+        end
         G.GAME.blind.chips = get_blind_amount(G.GAME.round_resets.ante)*G.GAME.blind.mult*G.GAME.starting_params.ante_scaling
         G.GAME.blind.chip_text = number_format(G.GAME.blind.chips)
         G.GAME.blind:set_text()
-    end
+    end,
+    cry_round_base_mod = function(self, dt)
+        if not G.GAME.blind.no_loop_flag and ((G.GAME.blind.config.blinds[1] == 'Lavender Loop') or (G.GAME.blind.config.blinds[2] == 'Lavender Loop') or (G.GAME.blind.config.blinds[3] == 'Lavender Loop')) then
+            return 1.25^(dt/1.5)
+        end
+        return 1
+    end,
+    cry_before_play = function(self)
+        if G.jokers.cards[1] and ((G.GAME.blind.config.blinds[1] == 'Vermillion Virus') or (G.GAME.blind.config.blinds[2] == 'Vermillion Virus') or (G.GAME.blind.config.blinds[3] == 'Vermillion Virus')) then
+            local idx = pseudorandom(pseudoseed('cry_vermillion_virus'),1,#G.jokers.cards)
+            if G.jokers.cards[idx] then
+                local _card = create_card('Joker', G.jokers, nil, nil, nil, nil, nil, 'cry_vermillion_virus_gen')
+                local is_flipped = (G.jokers.cards[idx].facing == 'back')
+                G.jokers.cards[idx]:remove_from_deck()
+                _card:add_to_deck()
+                _card:start_materialize()
+                G.jokers.cards[idx] = _card
+                _card:set_card_area(G.jokers)
+                G.jokers:set_ranks()
+                G.jokers:align_cards()
+                if is_flipped then
+                    _card:flip()
+                end
+            end
+        end
+        if ((G.GAME.blind.config.blinds[1] == 'Sapphire Stamp') or (G.GAME.blind.config.blinds[2] == 'Sapphire Stamp') or (G.GAME.blind.config.blinds[3] == 'Sapphire Stamp')) then
+            local idx = pseudorandom(pseudoseed("cry_sapphire_stamp"), 1, #G.hand.highlighted)
+            G.hand:remove_from_highlighted(G.hand.highlighted[idx])
+        end
+    end,
+    defeat = function(self, silent)
+        if not self.disabled and ((G.GAME.blind.config.blinds[1] == 'Sapphire Stamp') or (G.GAME.blind.config.blinds[2] == 'Sapphire Stamp') or (G.GAME.blind.config.blinds[3] == 'Sapphire Stamp')) then
+            G.hand.config.highlighted_limit = G.hand.config.highlighted_limit - 1
+        end
+    end,
+
 }
 
 SMODS.Blind	{
@@ -1214,6 +1276,16 @@ SMODS.Back {
         Card.apply_to_run(nil, G.P_CENTERS['v_directors_cut'])
     end
 }
+
+
+local old_can_play = G.FUNCS.can_play
+G.FUNCS.can_play = function(e)
+    old_can_play(e)
+    if e.config.button ~= nil and G.GAME and G.GAME.blind and (G.GAME.blind.name == "Daring Group") and G.GAME.blind.config and G.GAME.blind.config.blinds and ((G.GAME.blind.config.blinds[1] == 'Sapphire Stamp') or (G.GAME.blind.config.blinds[2] == 'Sapphire Stamp') or (G.GAME.blind.config.blinds[3] == 'Sapphire Stamp')) and (#G.hand.highlighted <= 1) then
+        e.config.colour = G.C.UI.BACKGROUND_INACTIVE
+        e.config.button = nil
+    end
+end
 
 ----------------------------------------------
 ------------MOD CODE END----------------------
