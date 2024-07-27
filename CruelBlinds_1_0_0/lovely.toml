@@ -211,7 +211,7 @@ payload = '''G.E_MANAGER:add_event(Event({trigger = 'after', delay = 0.2, func =
     end
     for k, v in ipairs(G.play.cards) do
         G.GAME.monitor_ranks_played[v.base.value] = (G.GAME.monitor_ranks_played[v.base.value] or 0) + 1
-        if v.ability.puzzled and not v.debuff then
+        if v.ability.puzzled and not v.debuff and ((not (v.ability.effect == 'Stone Card' or v.config.center.no_rank)) or v.vampired) then
             local suits = {'H', 'D', 'S', 'C'}
             local ranks = {'A', '2', '3', '4', '5', '6', '7', '8', '9', 'T', 'J', 'Q', 'K'}
             local suit = pseudorandom_element(suits, pseudoseed('puzzle'))
@@ -222,7 +222,7 @@ payload = '''G.E_MANAGER:add_event(Event({trigger = 'after', delay = 0.2, func =
 
     end
     for k, v in ipairs(G.hand.cards) do
-        if v.ability.puzzled and not v.debuff then
+        if v.ability.puzzled and not v.debuff and ((not (v.ability.effect == 'Stone Card' or v.config.center.no_rank)) or v.vampired) then
             local suits = {'H', 'D', 'S', 'C'}
             local ranks = {'A', '2', '3', '4', '5', '6', '7', '8', '9', 'T', 'J', 'Q', 'K'}
             local suit = pseudorandom_element(suits, pseudoseed('puzzle'))
@@ -279,7 +279,7 @@ end
 local ranks_held = {}
 for i, j in pairs(G.playing_cards) do
     if (not (j.ability.effect == 'Stone Card' or j.config.center.no_rank)) or j.vampired then
-        if not j.ability.puzzled then
+        if not j.ability.puzzled and not j.debuff then
             ranks_held[j.base.value] = true
         end
     end
@@ -297,9 +297,9 @@ for i, j in pairs(ranks_held) do
 end
 if rank_length > 1 then
     local min = G.GAME.monitor_ranks_played[firstI] or 0
-    local min_rank = ranks_held[firstI]
+    local min_rank = firstI
     local min2 = G.GAME.monitor_ranks_played[secondI] or 0
-    local min_rank2 = ranks_held[secondI]
+    local min_rank2 = secondI
     if min2 < min then
         min, min2 = min2, min
         min_rank, min_rank2 = min_rank2, min_rank
