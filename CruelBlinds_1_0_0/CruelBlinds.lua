@@ -4,7 +4,7 @@
 --- PREFIX: cruel
 --- MOD_AUTHOR: [mathguy]
 --- MOD_DESCRIPTION: Cruel Blinds
---- VERSION: 1.2.3
+--- VERSION: 1.2.0
 ----------------------------------------------
 ------------MOD CODE -------------------------
 
@@ -1177,7 +1177,9 @@ end
 function SMODS.current_mod.process_loc_text()
     G.localization.misc.challenge_names["c_very_cruel"] = "Very Cruel"
     G.localization.misc.challenge_names["c_very_crueler"] = "Cruely Cruel"
+    G.localization.misc.challenge_names["c_precise"] = "Hyper Precision"
     G.localization.misc.v_text.ch_c_cruel_blinds = {"All blinds past ante {C:attention}1{} are {C:attention}cruel blinds{}."}
+    G.localization.misc.v_text.ch_c_always_overshoot = { 'Raise {C:attention}blind size{} by {C:attention}8%{} for every {C:attention}5%{} overscored' }
     G.localization.descriptions.Other.puzzled = {name = "Puzzled", text = {"Randomize rank and suit", "each hand played."}}
     G.localization.misc.labels.puzzled = "Puzzled"
     G.localization.misc.poker_hands["No Hand"] = "No Hand"
@@ -1249,6 +1251,37 @@ table.insert(G.CHALLENGES,#G.CHALLENGES+1,
                 {id = 'tag_boss'}
             },
             banned_other = {
+            }
+        }
+    }
+)
+
+table.insert(G.CHALLENGES,#G.CHALLENGES+1,
+    {name = 'Hyper Precision',
+        id = 'c_precise',
+        rules = {
+            custom = {
+                {id = 'always_overshoot'},
+            },
+            modifiers = {
+            }
+        },
+        jokers = {       
+        },
+        consumeables = {
+        },
+        vouchers = {
+        },
+        deck = {
+            type = 'Challenge Deck',
+        },
+        restrictions = {
+            banned_cards = {
+            },
+            banned_tags = {
+            },
+            banned_other = {
+                {id = 'bl_cruel_overshoot', type = 'blind'},
             }
         }
     }
