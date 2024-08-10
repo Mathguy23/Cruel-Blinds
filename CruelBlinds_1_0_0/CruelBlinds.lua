@@ -4,7 +4,7 @@
 --- PREFIX: cruel
 --- MOD_AUTHOR: [mathguy]
 --- MOD_DESCRIPTION: Cruel Blinds
---- VERSION: 1.2.3
+--- VERSION: 1.3.0
 ----------------------------------------------
 ------------MOD CODE -------------------------
 
@@ -32,6 +32,12 @@ SMODS.Atlas({ key = "broken", atlas_table = "ASSET_ATLAS", path = "broken.png", 
 })
 
 SMODS.Atlas({ key = "decks", atlas_table = "ASSET_ATLAS", path = "Backs.png", px = 71, py = 95})
+
+SMODS.Atlas({ key = "chips", atlas_table = "ASSET_ATLAS", path = "chips.png", px = 29, py = 29})
+
+SMODS.Atlas({ key = "stickers", atlas_table = "ASSET_ATLAS", path = "stickers.png", px = 71, py = 95})
+
+SMODS.Atlas({ key = "stickers2", atlas_table = "ASSET_ATLAS", path = "stickers2.png", px = 71, py = 95})
 
 SMODS.Blind	{
     loc_txt = {
@@ -1164,6 +1170,344 @@ SMODS.Blind	{
     end
 }
 
+
+------------Cruel Stakes------------------------
+
+SMODS.Stake {
+    key = 'mean',
+    name = "Mean Stake",
+    atlas = "chips",
+    pos = {x = 0, y = 0},
+    applied_stakes = {"white"},
+	loc_txt = {
+        description = {
+            name = "Mean Stake",
+            text = {
+                "Lose {C:money}x0.2{} total {C:attention}Joker sell value",
+                "at {C:attention}round{} end as {C:money}dollars{}",
+            }
+        },
+        sticker = {
+            name = "Mean Sticker",
+            text = {
+                "Used this Joker",
+                "to win on {C:attention}Mean",
+                "{C:attention}Stake{} difficulty"
+            }
+        }
+    },
+    modifiers = function()
+        G.GAME.modifiers.joker_tax = true
+    end,
+    colour = HEX("C06041"),
+    sticker_pos = {x = 0, y = 0},
+    sticker_atlas = "stickers"
+}
+
+SMODS.Stake {
+    key = 'rude',
+    name = "Rude Stake",
+    atlas = "chips",
+    pos = {x = 1, y = 0},
+    applied_stakes = {"cruel_mean"},
+	loc_txt = {
+        description = {
+            name = "Rude Stake",
+            text = {
+                "+{C:blue}x0.03 Blind Size{} each",
+                "{C:attention}hand played{}",
+            }
+        },
+        sticker = {
+            name = "Rude Sticker",
+            text = {
+                "Used this Joker",
+                "to win on {C:attention}Rude",
+                "{C:attention}Stake{} difficulty"
+            }
+        }
+    },
+    modifiers = function()
+        G.GAME.modifiers.rise = 0.03
+    end,
+    colour = HEX("39A297"),
+    sticker_pos = {x = 1, y = 0},
+    sticker_atlas = "stickers"
+}
+
+SMODS.Sticker {
+    key = 'wash',
+    rate = 0.5,
+    atlas = 'stickers2',
+    pos = { x = 0, y = 0 },
+    colour = HEX '97F1EF',
+    loc_txt = {
+        description = {
+            name = "Wash",
+            text = {
+                "Debuffed after",
+                "{C:attention}#1#{} {C:red}Discards{}",
+                "{C:inactive}({C:attention}#2#{C:inactive} remaining)"
+            }
+        },
+        label = "Wash"
+    },
+    loc_vars = function(self, info_queue, card)
+        return {vars = {8, card.ability.wash_tally or 8}}
+    end,
+    set_sticker = function(self, card, val)
+        card.ability[self.key] = val
+        card.ability.wash_tally = card.ability.wash_tally or 8
+    end,
+    calculate = function(self, card, context)
+        if context.pre_discard then
+            if card.ability.wash_tally > 0 then
+                if card.ability.wash_tally == 1 then
+                    card.ability.wash_tally = 0
+                    card_eval_status_text(card, 'extra', nil, nil, nil, {message = localize('k_disabled_ex'),colour = G.C.FILTER, delay = 0.45})
+                    card:set_debuff()
+                else
+                    card.ability.wash_tally = card.ability.wash_tally - 1
+                    card_eval_status_text(card, 'extra', nil, nil, nil, {message = localize{type='variable',key='a_remaining',vars={card.ability.wash_tally}},colour = G.C.FILTER, delay = 0.45})
+                end
+            end
+        end
+    end
+}
+
+SMODS.Stake {
+    key = 'mocking',
+    name = "Mocking Stake",
+    atlas = "chips",
+    pos = {x = 2, y = 0},
+    applied_stakes = {"cruel_rude"},
+	loc_txt = {
+        description = {
+            name = "Mocking Stake",
+            text = {
+                "Shop can have {C:attention}Wash{} Jokers",
+                "{C:inactive,s:0.8}(Debuffed after 8 Discards)",
+            }
+        },
+        sticker = {
+            name = "Mocking Sticker",
+            text = {
+                "Used this Joker",
+                "to win on {C:attention}Mocking",
+                "{C:attention}Stake{} difficulty"
+            }
+        }
+    },
+    modifiers = function()
+        G.GAME.modifiers.enable_st_cruel_wash = true
+    end,
+    colour = HEX("3441BE"),
+    sticker_pos = {x = 2, y = 0},
+    sticker_atlas = "stickers"
+}
+
+SMODS.Stake {
+    key = 'painful',
+    name = "Painful Stake",
+    atlas = "chips",
+    pos = {x = 3, y = 0},
+    applied_stakes = {"cruel_mocking"},
+	loc_txt = {
+        description = {
+            name = "Painful Stake",
+            text = {
+                "-1 {C:attention}Joker Slot{}"
+            }
+        },
+        sticker = {
+            name = "Painful Sticker",
+            text = {
+                "Used this Joker",
+                "to win on {C:attention}Painful",
+                "{C:attention}Stake{} difficulty"
+            }
+        }
+    },
+    modifiers = function()
+        G.GAME.starting_params.joker_slots = G.GAME.starting_params.joker_slots and (G.GAME.starting_params.joker_slots - 1) or 4
+    end,
+    colour = HEX("1A5E6C"),
+    sticker_pos = {x = 3, y = 0},
+    sticker_atlas = "stickers"
+}
+
+SMODS.Stake {
+    key = 'harsh',
+    name = "Harsh Stake",
+    atlas = "chips",
+    pos = {x = 0, y = 1},
+    applied_stakes = {"cruel_painful"},
+	loc_txt = {
+        description = {
+            name = "Harsh Stake",
+            text = {
+                "{C:attention}x0.8{} Base {C:blue}Chips",
+                "and {C:red}Mult{C:inactive} (rounds up)"
+            }
+        },
+        sticker = {
+            name = "Harsh Sticker",
+            text = {
+                "Used this Joker",
+                "to win on {C:attention}Harsh",
+                "{C:attention}Stake{} difficulty"
+            }
+        }
+    },
+    modifiers = function()
+        G.GAME.modifiers.base_reduction = 0.8
+    end,
+    colour = HEX("8D44DC"),
+    sticker_pos = {x = 0, y = 1},
+    sticker_atlas = "stickers"
+}
+
+SMODS.Stake {
+    key = 'brutal',
+    name = "Brutal Stake",
+    atlas = "chips",
+    pos = {x = 1, y = 1},
+    applied_stakes = {"cruel_harsh"},
+	loc_txt = {
+        description = {
+            name = "Brutal Stake",
+            text = {
+                "{C:money}-$6{} at start",
+                "of {C:attention}run{}"
+            }
+        },
+        sticker = {
+            name = "Brutal Sticker",
+            text = {
+                "Used this Joker",
+                "to win on {C:attention}Brutal",
+                "{C:attention}Stake{} difficulty"
+            }
+        }
+    },
+    modifiers = function()
+        G.GAME.starting_params.dollars = G.GAME.starting_params.dollars and (G.GAME.starting_params.dollars - 6) or -2
+    end,
+    colour = HEX("DE2441"),
+    sticker_pos = {x = 1, y = 1},
+    sticker_atlas = "stickers"
+}
+
+SMODS.Sticker {
+    key = 'overpriced',
+    rate = 0.35,
+    atlas = 'stickers2',
+    pos = { x = 1, y = 0 },
+    colour = HEX '97F1EF',
+    loc_txt = {
+        description = {
+            name = "Overpriced",
+            text = {
+                "Double base",
+                "cost",
+            }
+        },
+        label = "Overpriced"
+    },
+    sets = { 
+        Joker = true,
+        Tarot = true,
+        Planet = true,
+        Spectral = true,
+        Tarot_Planet = true,
+    },
+    set_sticker = function(self, card, val)
+        card.ability[self.key] = val
+        card:set_cost()
+    end
+}
+
+SMODS.Stake {
+    key = 'horrid',
+    name = "Horrid Stake",
+    atlas = "chips",
+    pos = {x = 2, y = 1},
+    applied_stakes = {"cruel_brutal"},
+	loc_txt = {
+        description = {
+            name = "Horrid Stake",
+            text = {
+                "Shop can have {C:attention}Overpriced{} Items",
+                "{C:inactive,s:0.8}(Double base cost)",
+            }
+        },
+        sticker = {
+            name = "Horrid Sticker",
+            text = {
+                "Used this Joker",
+                "to win on {C:attention}Horrid",
+                "{C:attention}Stake{} difficulty"
+            }
+        }
+    },
+    modifiers = function()
+        G.GAME.modifiers.enable_st_cruel_overpriced = true
+    end,
+    colour = HEX("DAA900"),
+    sticker_pos = {x = 2, y = 1},
+    sticker_atlas = "stickers"
+}
+
+SMODS.Stake {
+    key = 'cruel',
+    name = "Cruel Stake",
+    atlas = "chips",
+    pos = {x = 3, y = 1},
+    applied_stakes = {"cruel_horrid"},
+	loc_txt = {
+        description = {
+            name = "Cruel Stake",
+            text = {
+                "-1 {C:attention}Hand Size{}"
+            }
+        },
+        sticker = {
+            name = "Cruel Sticker",
+            text = {
+                "Used this Joker",
+                "to win on {C:attention}Cruel",
+                "{C:attention}Stake{} difficulty"
+            }
+        }
+    },
+    modifiers = function()
+        G.GAME.starting_params.hand_size = G.GAME.starting_params.hand_size and (G.GAME.starting_params.hand_size - 1) or 7
+    end,
+    colour = HEX("43E63D"),
+    sticker_pos = {x = 3, y = 1},
+    sticker_atlas = "stickers"
+}
+
+old_press = Blind.press_play
+function Blind:press_play()
+    local returns = old_press(self)
+    if G.GAME.modifiers.rise then
+            G.E_MANAGER:add_event(Event({trigger = 'after', delay = 0.2, func = function()
+                G.GAME.starting_params.ante_scaling = G.GAME.starting_params.ante_scaling + G.GAME.modifiers.rise
+                self.chips = self.chips * (G.GAME.starting_params.ante_scaling) / (G.GAME.starting_params.ante_scaling - G.GAME.modifiers.rise)
+                self.chip_text = number_format(self.chips)
+                G.FUNCS.blind_chip_UI_scale(G.hand_text_area.blind_chips)
+                G.HUD_blind:recalculate() 
+                G.hand_text_area.blind_chips:juice_up()
+                delay(0.23)
+            return true end }))
+    end
+    if (returns ~= nil) then
+        return returns
+    end
+end
+-----------------------------------------
+
 local old_get_poker_hand_info = G.FUNCS.get_poker_hand_info
 function G.FUNCS.get_poker_hand_info(_cards)
 	local text, loc_disp_text, poker_hands, scoring_hand, disp_text = old_get_poker_hand_info(_cards)
@@ -1183,6 +1527,12 @@ function SMODS.current_mod.process_loc_text()
     G.localization.descriptions.Other.puzzled = {name = "Puzzled", text = {"Randomize rank and suit", "each hand played."}}
     G.localization.misc.labels.puzzled = "Puzzled"
     G.localization.misc.poker_hands["No Hand"] = "No Hand"
+end
+
+function SMODS.current_mod.set_debuff(card)
+    if card.ability.wash_tally == 0 then
+        return true
+    end
 end
 
 table.insert(G.CHALLENGES,#G.CHALLENGES+1,
@@ -1309,7 +1659,6 @@ SMODS.Back {
         Card.apply_to_run(nil, G.P_CENTERS['v_directors_cut'])
     end
 }
-
 
 local old_can_play = G.FUNCS.can_play
 G.FUNCS.can_play = function(e)
