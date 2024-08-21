@@ -787,6 +787,7 @@ SMODS.Blind	{
         return false
     end,
     in_pool = function(self)
+	if not G.jokers then return false end
         for i, j in pairs(G.jokers.cards) do
             if not ((j.config.center.rarity == 1) or (j.config.center.rarity == 2)) then
                 return true
