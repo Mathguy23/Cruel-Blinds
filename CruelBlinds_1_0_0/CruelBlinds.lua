@@ -787,7 +787,7 @@ SMODS.Blind	{
         return false
     end,
     in_pool = function(self)
-	if not G.jokers then return false end
+        if not G.jokers then return false end
         for i, j in pairs(G.jokers.cards) do
             if not ((j.config.center.rarity == 1) or (j.config.center.rarity == 2)) then
                 return true
@@ -1014,6 +1014,12 @@ SMODS.Blind	{
         end
         if display2 == 'A' then
             display2 = 'Ace'
+        end
+        if display == nil then
+            display = '2'
+        end
+        if display2 == nil then
+            display2 = '3'
         end
         return {vars = {localize(display, 'ranks'), localize(display2, 'ranks')}}
     end,
@@ -1489,6 +1495,45 @@ SMODS.Stake {
     sticker_atlas = "stickers"
 }
 
+SMODS.Stake {
+    key = 'fools',
+    name = "Fool's Stake",
+    atlas = "chips",
+    pos = {x = 0, y = 2},
+    applied_stakes = {"cruel_cruel", "gold"},
+	loc_txt = {
+        description = {
+            name = "Fool's Stake",
+            text = {
+                "You may not {C:green}Reroll{}"
+            }
+        },
+        sticker = {
+            name = "Fool's Sticker",
+            text = {
+                "Used this Joker",
+                "to win on {C:attention}Fool's",
+                "{C:attention}Stake{} difficulty"
+            }
+        }
+    },
+    modifiers = function()
+        G.GAME.modifiers.no_rerolls_ever = true
+    end,
+    colour = HEX("FFFF00"),
+    sticker_pos = {x = 0, y = 2},
+    sticker_atlas = "stickers"
+}
+
+local old_reroll = G.FUNCS.can_reroll
+G.FUNCS.can_reroll = function(e)
+    old_reroll(e)
+    if G and G.GAME and G.GAME.modifiers and G.GAME.modifiers.no_rerolls_ever then
+        e.config.colour = G.C.UI.BACKGROUND_INACTIVE
+        e.config.button = nil
+    end
+  end
+
 old_press = Blind.press_play
 function Blind:press_play()
     local returns = old_press(self)
@@ -1528,6 +1573,64 @@ function SMODS.current_mod.process_loc_text()
     G.localization.descriptions.Other.puzzled = {name = "Puzzled", text = {"Randomize rank and suit", "each hand played."}}
     G.localization.misc.labels.puzzled = "Puzzled"
     G.localization.misc.poker_hands["No Hand"] = "No Hand"
+end
+
+function SMODS.current_mod.process_loc_text()
+    if not G.GAME.monitor_ranks_played then
+        G.GAME.monitor_ranks_played = {}
+    end
+    local ranks_held = {}
+    for i, j in pairs(G.playing_cards) do
+        if (not (j.ability.effect == 'Stone Card' or j.config.center.no_rank)) or j.vampired then
+            if not j.ability.puzzled and not j.debuff then
+                ranks_held[j.base.value] = true
+            end
+        end
+    end
+    local rank_length = 0
+    local firstI = 0
+    local secondI = 0
+    for i, j in pairs(ranks_held) do
+        if firstI == 0 then
+            firstI = i
+        elseif secondI == 0 then
+            secondI = i
+        end
+        rank_length = rank_length + 1
+    end
+    if firstI == 0 then
+        firstI = '2'
+    end
+    if secondI == 0 then
+        secondI = '3'
+    end
+    if rank_length > 1 then
+        local min = G.GAME.monitor_ranks_played[firstI] or 0
+        local min_rank = firstI
+        local min2 = G.GAME.monitor_ranks_played[secondI] or 0
+        local min_rank2 = secondI
+        if min2 < min then
+            min, min2 = min2, min
+            min_rank, min_rank2 = min_rank2, min_rank
+        end
+        for i, j in pairs(ranks_held) do
+            if (G.GAME.monitor_ranks_played[i] or 0) < min then
+                min2 = min
+                min_rank2 = min_rank
+                min = G.GAME.monitor_ranks_played[i] or 0
+                min_rank = i
+            elseif (G.GAME.monitor_ranks_played[i] or 0) < min2 then
+                min2 = G.GAME.monitor_ranks_played[i] or 0
+                min_rank2 = i
+            end
+        end
+        G.GAME.current_round.least_played_rank = min_rank
+        G.GAME.current_round.least_played_rank2 = min_rank2
+    elseif rank_length == 1 then
+        local min_rank = firstI
+        G.GAME.current_round.least_played_rank = min_rank
+        G.GAME.current_round.least_played_rank2 = min_rank
+    end
 end
 
 function SMODS.current_mod.set_debuff(card)
