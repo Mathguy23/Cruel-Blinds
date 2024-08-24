@@ -4,7 +4,7 @@
 --- PREFIX: cruel
 --- MOD_AUTHOR: [mathguy]
 --- MOD_DESCRIPTION: Cruel Blinds
---- VERSION: 1.3.0
+--- VERSION: 1.3.1
 ----------------------------------------------
 ------------MOD CODE -------------------------
 
@@ -1575,61 +1575,63 @@ function SMODS.current_mod.process_loc_text()
     G.localization.misc.poker_hands["No Hand"] = "No Hand"
 end
 
-function SMODS.current_mod.process_loc_text()
-    if not G.GAME.monitor_ranks_played then
-        G.GAME.monitor_ranks_played = {}
-    end
-    local ranks_held = {}
-    for i, j in pairs(G.playing_cards) do
-        if (not (j.ability.effect == 'Stone Card' or j.config.center.no_rank)) or j.vampired then
-            if not j.ability.puzzled and not j.debuff then
-                ranks_held[j.base.value] = true
+function SMODS.current_mod.reset_game_globals()
+    if G.GAME.blind_on_deck == 'Boss' then
+        if not G.GAME.monitor_ranks_played then
+            G.GAME.monitor_ranks_played = {}
+        end
+        local ranks_held = {}
+        for i, j in pairs(G.playing_cards) do
+            if (not (j.ability.effect == 'Stone Card' or j.config.center.no_rank)) or j.vampired then
+                if not j.ability.puzzled and not j.debuff then
+                    ranks_held[j.base.value] = true
+                end
             end
         end
-    end
-    local rank_length = 0
-    local firstI = 0
-    local secondI = 0
-    for i, j in pairs(ranks_held) do
-        if firstI == 0 then
-            firstI = i
-        elseif secondI == 0 then
-            secondI = i
-        end
-        rank_length = rank_length + 1
-    end
-    if firstI == 0 then
-        firstI = '2'
-    end
-    if secondI == 0 then
-        secondI = '3'
-    end
-    if rank_length > 1 then
-        local min = G.GAME.monitor_ranks_played[firstI] or 0
-        local min_rank = firstI
-        local min2 = G.GAME.monitor_ranks_played[secondI] or 0
-        local min_rank2 = secondI
-        if min2 < min then
-            min, min2 = min2, min
-            min_rank, min_rank2 = min_rank2, min_rank
-        end
+        local rank_length = 0
+        local firstI = 0
+        local secondI = 0
         for i, j in pairs(ranks_held) do
-            if (G.GAME.monitor_ranks_played[i] or 0) < min then
-                min2 = min
-                min_rank2 = min_rank
-                min = G.GAME.monitor_ranks_played[i] or 0
-                min_rank = i
-            elseif (G.GAME.monitor_ranks_played[i] or 0) < min2 then
-                min2 = G.GAME.monitor_ranks_played[i] or 0
-                min_rank2 = i
+            if firstI == 0 then
+                firstI = i
+            elseif secondI == 0 then
+                secondI = i
             end
+            rank_length = rank_length + 1
         end
-        G.GAME.current_round.least_played_rank = min_rank
-        G.GAME.current_round.least_played_rank2 = min_rank2
-    elseif rank_length == 1 then
-        local min_rank = firstI
-        G.GAME.current_round.least_played_rank = min_rank
-        G.GAME.current_round.least_played_rank2 = min_rank
+        if firstI == 0 then
+            firstI = '2'
+        end
+        if secondI == 0 then
+            secondI = '3'
+        end
+        if rank_length > 1 then
+            local min = G.GAME.monitor_ranks_played[firstI] or 0
+            local min_rank = firstI
+            local min2 = G.GAME.monitor_ranks_played[secondI] or 0
+            local min_rank2 = secondI
+            if min2 < min then
+                min, min2 = min2, min
+                min_rank, min_rank2 = min_rank2, min_rank
+            end
+            for i, j in pairs(ranks_held) do
+                if (G.GAME.monitor_ranks_played[i] or 0) < min then
+                    min2 = min
+                    min_rank2 = min_rank
+                    min = G.GAME.monitor_ranks_played[i] or 0
+                    min_rank = i
+                elseif (G.GAME.monitor_ranks_played[i] or 0) < min2 then
+                    min2 = G.GAME.monitor_ranks_played[i] or 0
+                    min_rank2 = i
+                end
+            end
+            G.GAME.current_round.least_played_rank = min_rank
+            G.GAME.current_round.least_played_rank2 = min_rank2
+        elseif rank_length == 1 then
+            local min_rank = firstI
+            G.GAME.current_round.least_played_rank = min_rank
+            G.GAME.current_round.least_played_rank2 = min_rank
+        end
     end
 end
 
