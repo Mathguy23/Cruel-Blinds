@@ -195,9 +195,9 @@ match_indent = true
 [[patches]]
 [patches.pattern]
 target = 'card.lua'
-pattern = '''if self.edition or self.seal or self.ability.eternal or self.ability.rental or self.ability.perishable or self.sticker or self.ability.set == 'Spectral' or self.debuff or self.greyed or self.ability.name == 'The Soul' or self.ability.set == 'Voucher' or self.ability.set == 'Booster' or self.config.center.soul_pos or self.config.center.demo then'''
+pattern = '''if self.edition or self.seal or self.ability.eternal or self.ability.rental or self.ability.perishable or self.sticker or ((self.sticker_run and self.sticker_run ~= 'NONE') and G.SETTINGS.run_stake_stickers) or (self.ability.set == 'Spectral') or self.debuff or self.greyed or (self.ability.name == 'The Soul') or (self.ability.set == 'Voucher') or (self.ability.set == 'Booster') or self.config.center.soul_pos or self.config.center.demo then'''
 position = 'at'
-payload = '''if (self.ability and (self.ability.puzzled)) or self.edition or self.seal or self.ability.eternal or self.ability.rental or self.ability.perishable or self.sticker or self.ability.set == 'Spectral' or self.debuff or self.greyed or self.ability.name == 'The Soul' or self.ability.set == 'Voucher' or self.ability.set == 'Booster' or self.config.center.soul_pos or self.config.center.demo then'''
+payload = '''if (self.ability and (self.ability.puzzled)) or self.edition or self.seal or self.ability.eternal or self.ability.rental or self.ability.perishable or self.sticker or ((self.sticker_run and self.sticker_run ~= 'NONE') and G.SETTINGS.run_stake_stickers) or (self.ability.set == 'Spectral') or self.debuff or self.greyed or (self.ability.name == 'The Soul') or (self.ability.set == 'Voucher') or (self.ability.set == 'Booster') or self.config.center.soul_pos or self.config.center.demo then'''
 match_indent = true
 
 [[patches]]
@@ -437,4 +437,14 @@ pattern = '''pinned_left = G.C.ORANGE,'''
 position = 'after'
 payload = '''st_cruel_overpriced = G.C.ORANGE,
 st_cruel_wash = G.C.BLUE,'''
+match_indent = true
+
+[[patches]]
+[patches.pattern]
+target = 'card.lua'
+pattern = '''function Card:set_card_area(area)'''
+position = 'after'
+payload = '''if self.ability and ((self.ability.set == 'Enhanced') or (self.ability.set == 'Base')) and G.GAME.selected_back and (G.GAME.selected_back.name == "Puzzled Deck") and ((area == G.hand) or (area == G.deck) or (area == G.play) or (area == G.pack_cards) or (area == G.shop_jokers)) then
+    self.ability.puzzled = true
+end'''
 match_indent = true

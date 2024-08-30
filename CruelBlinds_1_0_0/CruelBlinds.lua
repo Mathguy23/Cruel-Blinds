@@ -4,7 +4,7 @@
 --- PREFIX: cruel
 --- MOD_AUTHOR: [mathguy]
 --- MOD_DESCRIPTION: Cruel Blinds
---- VERSION: 1.3.1
+--- VERSION: 1.3.2
 ----------------------------------------------
 ------------MOD CODE -------------------------
 
@@ -1187,12 +1187,10 @@ SMODS.Stake {
     pos = {x = 0, y = 0},
     applied_stakes = {"white"},
 	loc_txt = {
-        description = {
-            name = "Mean Stake",
-            text = {
-                "Lose {C:money}x0.2{} total {C:attention}Joker sell value",
-                "at {C:attention}round{} end as {C:money}dollars{}",
-            }
+        name = "Mean Stake",
+        text = {
+            "Lose {C:money}x0.2{} total {C:attention}Joker sell value",
+            "at {C:attention}round{} end as {C:money}dollars{}",
         },
         sticker = {
             name = "Mean Sticker",
@@ -1218,12 +1216,10 @@ SMODS.Stake {
     pos = {x = 1, y = 0},
     applied_stakes = {"cruel_mean"},
 	loc_txt = {
-        description = {
-            name = "Rude Stake",
-            text = {
-                "+{C:blue}x0.03 Blind Size{} each",
-                "{C:attention}hand played{}",
-            }
+        name = "Rude Stake",
+        text = {
+            "+{C:blue}x0.03 Blind Size{} each",
+            "{C:attention}hand played{}",
         },
         sticker = {
             name = "Rude Sticker",
@@ -1289,12 +1285,10 @@ SMODS.Stake {
     pos = {x = 2, y = 0},
     applied_stakes = {"cruel_rude"},
 	loc_txt = {
-        description = {
-            name = "Mocking Stake",
-            text = {
-                "Shop can have {C:attention}Wash{} Jokers",
-                "{C:inactive,s:0.8}(Debuffed after 8 Discards)",
-            }
+        name = "Mocking Stake",
+        text = {
+            "Shop can have {C:attention}Wash{} Jokers",
+            "{C:inactive,s:0.8}(Debuffed after 8 Discards)",
         },
         sticker = {
             name = "Mocking Sticker",
@@ -1320,11 +1314,9 @@ SMODS.Stake {
     pos = {x = 3, y = 0},
     applied_stakes = {"cruel_mocking"},
 	loc_txt = {
-        description = {
-            name = "Painful Stake",
-            text = {
-                "-1 {C:attention}Joker Slot{}"
-            }
+        name = "Painful Stake",
+        text = {
+            "-1 {C:attention}Joker Slot{}"
         },
         sticker = {
             name = "Painful Sticker",
@@ -1350,12 +1342,10 @@ SMODS.Stake {
     pos = {x = 0, y = 1},
     applied_stakes = {"cruel_painful"},
 	loc_txt = {
-        description = {
-            name = "Harsh Stake",
-            text = {
-                "{C:attention}x0.8{} Base {C:blue}Chips",
-                "and {C:red}Mult{C:inactive} (rounds up)"
-            }
+        name = "Harsh Stake",
+        text = {
+            "{C:attention}x0.8{} Base {C:blue}Chips",
+            "and {C:red}Mult{C:inactive} (rounds up)"
         },
         sticker = {
             name = "Harsh Sticker",
@@ -1381,12 +1371,10 @@ SMODS.Stake {
     pos = {x = 1, y = 1},
     applied_stakes = {"cruel_harsh"},
 	loc_txt = {
-        description = {
-            name = "Brutal Stake",
-            text = {
-                "{C:money}-$6{} at start",
-                "of {C:attention}run{}"
-            }
+        name = "Brutal Stake",
+        text = {
+            "{C:money}-$6{} at start",
+            "of {C:attention}run{}"
         },
         sticker = {
             name = "Brutal Sticker",
@@ -1441,12 +1429,10 @@ SMODS.Stake {
     pos = {x = 2, y = 1},
     applied_stakes = {"cruel_brutal"},
 	loc_txt = {
-        description = {
-            name = "Horrid Stake",
-            text = {
-                "Shop can have {C:attention}Overpriced{} Items",
-                "{C:inactive,s:0.8}(Double base cost)",
-            }
+        name = "Horrid Stake",
+        text = {
+            "Shop can have {C:attention}Overpriced{} Items",
+            "{C:inactive,s:0.8}(Double base cost)",
         },
         sticker = {
             name = "Horrid Sticker",
@@ -1472,11 +1458,9 @@ SMODS.Stake {
     pos = {x = 3, y = 1},
     applied_stakes = {"cruel_horrid"},
 	loc_txt = {
-        description = {
-            name = "Cruel Stake",
-            text = {
-                "-1 {C:attention}Hand Size{}"
-            }
+        name = "Cruel Stake",
+        text = {
+            "-1 {C:attention}Hand Size{}"
         },
         sticker = {
             name = "Cruel Sticker",
@@ -1502,11 +1486,9 @@ SMODS.Stake {
     pos = {x = 0, y = 2},
     applied_stakes = {"cruel_cruel", "gold"},
 	loc_txt = {
-        description = {
-            name = "Fool's Stake",
-            text = {
-                "You may not {C:green}Reroll{}"
-            }
+        name = "Fool's Stake",
+        text = {
+            "You may not {C:green}Reroll{}"
         },
         sticker = {
             name = "Fool's Sticker",
@@ -1764,6 +1746,32 @@ SMODS.Back {
         G.GAME.starting_voucher_count = (G.GAME.starting_voucher_count or 0) + 1
         Card.apply_to_run(nil, G.P_CENTERS['v_directors_cut'])
     end
+}
+
+SMODS.Back {
+    key = 'puzzled',
+    loc_txt = {
+        name = "Puzzled Deck",
+        text = {
+            "All {C:attention}playing cards{}",
+            "are {C:PERISHABLE}Puzzled{}",
+        }
+    },
+    name = "Puzzled Deck",
+    pos = { x = 1, y = 0 },
+    atlas = 'decks',
+    apply = function(self)
+        G.GAME.modifiers["puzzled_all"] = true
+        G.E_MANAGER:add_event(Event({
+            func = function()
+                for k, v in pairs(G.playing_cards) do
+                    v.ability.puzzled = true
+                end
+            return true
+            end
+        }))
+    end,
+    dependencies = { "Cryptid" }
 }
 
 local old_can_play = G.FUNCS.can_play
