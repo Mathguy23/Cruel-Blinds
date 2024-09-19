@@ -1244,14 +1244,13 @@ SMODS.Sticker {
     atlas = 'stickers2',
     pos = { x = 0, y = 0 },
     colour = HEX '97F1EF',
+    badge_colour = HEX '97F1EF',
     loc_txt = {
-        description = {
-            name = "Wash",
-            text = {
-                "Debuffed after",
-                "{C:attention}#1#{} {C:red}Discards{}",
-                "{C:inactive}({C:attention}#2#{C:inactive} remaining)"
-            }
+        name = "Wash",
+        text = {
+            "Debuffed after",
+            "{C:attention}#1#{} {C:red}Discards{}",
+            "{C:inactive}({C:attention}#2#{C:inactive} remaining)"
         },
         label = "Wash"
     },
@@ -1263,6 +1262,7 @@ SMODS.Sticker {
         card.ability.wash_tally = card.ability.wash_tally or 8
     end,
     calculate = function(self, card, context)
+        card.ability.wash_tally = card.ability.wash_tally or 8
         if context.pre_discard then
             if card.ability.wash_tally > 0 then
                 if card.ability.wash_tally == 1 then
@@ -1398,14 +1398,13 @@ SMODS.Sticker {
     rate = 0.35,
     atlas = 'stickers2',
     pos = { x = 1, y = 0 },
-    colour = HEX '97F1EF',
+    colour = HEX 'FDA200',
+    badge_colour = HEX 'FDA200',
     loc_txt = {
-        description = {
-            name = "Overpriced",
-            text = {
-                "Double base",
-                "cost",
-            }
+        name = "Overpriced",
+        text = {
+            "Double base",
+            "cost",
         },
         label = "Overpriced"
     },
