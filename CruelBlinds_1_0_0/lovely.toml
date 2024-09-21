@@ -83,20 +83,6 @@ match_indent = true
 
 [[patches]]
 [patches.pattern]
-target = 'functions/misc_functions.lua'
-pattern = 'return results'
-position = 'before'
-payload = '''if G.GAME.blind and (G.GAME.blind.name == "The Steal") and not G.GAME.blind.disabled then
-        if G.GAME.current_round.most_played_poker_hand == "High Card" then
-
-        else
-            results[G.GAME.current_round.most_played_poker_hand] = {}
-        end
-    end'''
-match_indent = true
-
-[[patches]]
-[patches.pattern]
 target = 'card.lua'
 pattern = 'function Card:sell_card()'
 position = 'after'
@@ -447,4 +433,66 @@ position = 'after'
 payload = '''if self.ability and ((self.ability.set == 'Enhanced') or (self.ability.set == 'Base')) and G.GAME.selected_back and (G.GAME.selected_back.name == "Puzzled Deck") and ((area == G.hand) or (area == G.deck) or (area == G.play) or (area == G.pack_cards) or (area == G.shop_jokers)) then
     self.ability.puzzled = true
 end'''
+match_indent = true
+
+[[patches]]
+[patches.pattern]
+target = 'functions/state_events.lua'
+pattern = '''local hand_text_set = false'''
+position = 'before'
+payload = '''if G.GAME.blind and (G.GAME.blind.name == "The Steal") and not G.GAME.blind.disabled then
+        if G.GAME.current_round.most_played_poker_hand == "High Card" then
+
+        else
+            poker_hands[G.GAME.current_round.most_played_poker_hand] = {}
+            local top_hand = ""
+            poker_hands.top = nil
+            for _, v in ipairs(G.handlist) do
+                if next(poker_hands[v]) then
+                    top_hand = v
+                    poker_hands.top = poker_hands[v]
+                    break
+                end
+            end
+            text = top_hand or "High Card"
+            non_loc_disp_text = text
+            if text == 'Straight Flush' then
+                local royal = true
+                for j = 1, #scoring_hand do
+                    local rank = SMODS.Ranks[scoring_hand[j].base.value]
+                    royal = royal and (rank.key == 'Ace' or rank.key == '10' or rank.face)
+                end
+                if royal then
+                    non_loc_disp_text = 'Royal Flush'
+                end
+            elseif _hand and _hand.modify_display_text and type(_hand.modify_display_text) == 'function' then
+                non_loc_disp_text = _hand:modify_display_text(_cards, scoring_hand) or disp_text
+            end
+            disp_text = localize(non_loc_disp_text, 'poker_hands')
+            G.GAME.blind:wiggle()
+            new_scoring_hand = poker_hands[text][1]
+            for i=1, #scoring_hand do
+                local card = scoring_hand[i]
+                card.prev_scored = true
+            end
+            for i=1, #new_scoring_hand do
+                local card = new_scoring_hand[i]
+                card.cruel_scored = true
+                if not card.prev_scored then
+                    highlight_card(card,(i-0.999)/5,'up')
+                end
+            end
+            for i=1, #G.play.cards do
+                local card = G.play.cards[i]
+                if not card.cruel_scored and card.prev_scored then
+                    highlight_card(card,(i-0.999)/5,'down')
+                end
+            end
+            scoring_hand = new_scoring_hand
+            update_hand_text({sound = 'button', volume = 0.4, nopulse = nil, delay = 0.4}, {handname=disp_text, level=G.GAME.hands[text].level, mult = G.GAME.hands[text].mult, chips = G.GAME.hands[text].chips})
+            mult = mod_mult(G.GAME.hands[text].mult)
+            hand_chips = mod_chips(G.GAME.hands[text].chips)
+            delay(0.4)
+        end
+    end'''
 match_indent = true

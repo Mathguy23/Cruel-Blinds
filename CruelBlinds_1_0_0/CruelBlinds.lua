@@ -108,7 +108,7 @@ SMODS.Blind	{
     key = 'steal',
     name = 'The Steal',
     config = {},
-    boss = {min = 3, max = 10, hardcore = true}, 
+    boss = {min = 1, max = 10, hardcore = true}, 
     boss_colour = HEX("2222BB"),
     atlas = "blinds",
     pos = { x = 0, y = 2},
@@ -621,7 +621,8 @@ SMODS.Blind	{
                 end
             elseif (j == 'Crimson Heart') and G.jokers.cards[1] then
                 for _, v in ipairs(G.jokers.cards) do
-                    G.GAME.blind:debuff_card(v)
+                    -- G.GAME.blind:debuff_card(v)
+                    SMODS.recalc_debuff(v)
                 end
             elseif (j == 'Amber Acorn') and G.jokers.cards[1] then
                 G.jokers:unhighlight_all()
@@ -630,7 +631,8 @@ SMODS.Blind	{
                 end
             elseif (j == 'Verdant Leaf') then
                 for _, v in ipairs(G.playing_cards) do
-                    G.GAME.blind:debuff_card(v)
+                    -- G.GAME.blind:debuff_card(v)
+                    SMODS.recalc_debuff(v)
                 end
             elseif (j == "Violet Vessel") then
                 G.GAME.blind.chips = G.GAME.chips + math.floor((G.GAME.blind.chips - G.GAME.chips)/3)
@@ -685,7 +687,8 @@ SMODS.Blind	{
                 end
             elseif (j == 'Verdant Leaf') then
                 for _, v in ipairs(G.playing_cards) do
-                    G.GAME.blind:debuff_card(v)
+                    -- G.GAME.blind:debuff_card(v)
+                    SMODS.recalc_debuff(v)
                 end
             elseif (j == "Violet Vessel") then
                 G.GAME.blind.chips = G.GAME.chips + ((G.GAME.blind.chips - G.GAME.chips)*3)
