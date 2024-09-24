@@ -413,7 +413,7 @@ target = 'card.lua'
 pattern = '''if self.ability.rental then self.cost = 1 end'''
 position = 'after'
 payload = '''
-self.cost = self.cost + (self.ability.st_cruel_overpriced and self.base_cost or 0)'''
+self.cost = self.cost + (self.ability.cruel_overpriced and self.base_cost or 0)'''
 match_indent = true
 
 [[patches]]

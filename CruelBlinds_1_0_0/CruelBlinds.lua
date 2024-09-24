@@ -1249,7 +1249,7 @@ SMODS.Sticker {
     colour = HEX '97F1EF',
     badge_colour = HEX '97F1EF',
     should_apply = function(self, card, center, area)
-        if (card.ability.set == "Joker") and pseudorandom(pseudoseed('wash')) < 0.5 then
+        if G.GAME.modifiers and G.GAME.modifiers.enable_st_cruel_wash and (card.ability.set == "Joker") and pseudorandom(pseudoseed('wash')) < 0.5 then
             return true
         end
     end,
@@ -1265,7 +1265,7 @@ SMODS.Sticker {
     loc_vars = function(self, info_queue, card)
         return {vars = {8, card.ability.wash_tally or 8}}
     end,
-    set_sticker = function(self, card, val)
+    apply = function(self, card, val)
         card.ability[self.key] = val
         card.ability.wash_tally = card.ability.wash_tally or 8
     end,
@@ -1409,7 +1409,7 @@ SMODS.Sticker {
     colour = HEX 'FDA200',
     badge_colour = HEX 'FDA200',
     should_apply = function(self, card, center, area)
-        if self.sets[card.ability.set] and pseudorandom(pseudoseed('overprice')) < 0.35 then
+        if G.GAME.modifiers and G.GAME.modifiers.enable_st_cruel_overpriced and self.sets[card.ability.set] and pseudorandom(pseudoseed('overprice')) < 0.35 then
             return true
         end
     end,
@@ -1430,7 +1430,7 @@ SMODS.Sticker {
         Voucher = true,
         Booster = true,
     },
-    set_sticker = function(self, card, val)
+    apply = function(self, card, val)
         card.ability[self.key] = val
         card:set_cost()
     end
