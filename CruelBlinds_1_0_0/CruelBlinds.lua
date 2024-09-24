@@ -1248,6 +1248,7 @@ SMODS.Sticker {
     pos = { x = 0, y = 0 },
     colour = HEX '97F1EF',
     badge_colour = HEX '97F1EF',
+    should_apply = false,
     loc_txt = {
         name = "Wash",
         text = {
@@ -1403,6 +1404,7 @@ SMODS.Sticker {
     pos = { x = 1, y = 0 },
     colour = HEX 'FDA200',
     badge_colour = HEX 'FDA200',
+    should_apply = false,
     loc_txt = {
         name = "Overpriced",
         text = {
