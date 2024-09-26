@@ -108,7 +108,7 @@ SMODS.Blind	{
     key = 'steal',
     name = 'The Steal',
     config = {},
-    boss = {min = 1, max = 10, hardcore = true}, 
+    boss = {min = 3, max = 10, hardcore = true}, 
     boss_colour = HEX("2222BB"),
     atlas = "blinds",
     pos = { x = 0, y = 2},
