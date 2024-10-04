@@ -173,7 +173,7 @@ SMODS.Blind	{
             return true
         end
     end,
-    debuff_card = function(self, card, from_blind)
+    recalc_debuff = function(self, card, from_blind)
         if (card.area ~= G.jokers) and (card:is_suit("Clubs", true) or card:is_suit("Spades", true)) and not G.GAME.blind.disabled then
             return true
         end
@@ -210,7 +210,7 @@ SMODS.Blind	{
             return true
         end
     end,
-    debuff_card = function(self, card, from_blind)
+    recalc_debuff = function(self, card, from_blind)
         if (card.area ~= G.jokers) and (card:is_suit("Hearts", true) or card:is_suit("Diamonds", true)) and not G.GAME.blind.disabled then
             return true
         end
@@ -703,7 +703,7 @@ SMODS.Blind	{
             G.GAME.blind.no_loop_flag = nil
         end
     end,
-    debuff_card = function(self, card, from_blind)
+    recalc_debuff = function(self, card, from_blind)
         if ((G.GAME.blind.config.blinds[1] == 'Crimson Heart') or (G.GAME.blind.config.blinds[2] == 'Crimson Heart') or (G.GAME.blind.config.blinds[3] == 'Crimson Heart')) and not G.GAME.blind.disabled and card.area == G.jokers then 
             return false
         end
@@ -783,7 +783,7 @@ SMODS.Blind	{
     vars = {},
     dollars = 8,
     mult = 2,
-    debuff_card = function(self, card, from_blind)
+    recalc_debuff = function(self, card, from_blind)
         if (card.area == G.jokers) and not G.GAME.blind.disabled and not ((card.config.center.rarity == 1) or (card.config.center.rarity == 2)) then
             return true
         end
@@ -961,7 +961,7 @@ SMODS.Blind	{
             G.GAME.blind.config.even_parity = (pseudorandom("parity") > 0.5)
         end
     end,
-    debuff_card = function(self, card, from_blind)
+    recalc_debuff = function(self, card, from_blind)
         if (card.area ~= G.jokers) and not G.GAME.blind.disabled and card.base.id and not ((card.base.id % 2 == 0) == G.GAME.blind.config.even_parity) then
             return true
         end
