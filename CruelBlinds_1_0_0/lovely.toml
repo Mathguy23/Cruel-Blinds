@@ -172,7 +172,7 @@ match_indent = true
 target = 'card.lua'
 pattern = '''if self.ability.name == 'The Soul' and (self.config.center.discovered or self.bypass_discovery_center) then'''
 position = 'before'
-payload = '''if self.ability and (self.ability.puzzled) then
+payload = '''if self.ability and (self.ability.puzzled) and G.shared_seals['Broken'] then
     G.shared_seals['Broken'].role.draw_major = self
     G.shared_seals['Broken']:draw_shader('dissolve', nil, nil, nil, self.children.center)
 end'''
