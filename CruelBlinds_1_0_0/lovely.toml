@@ -496,3 +496,15 @@ payload = '''if G.GAME.blind and (G.GAME.blind.name == "The Steal") and not G.GA
         end
     end'''
 match_indent = true
+
+[[patches]]
+[patches.pattern]
+target = 'blind.lua'
+pattern = '''function Blind:debuff_hand(cards, hand, handname, check)'''
+position = 'after'
+payload = '''   if not check and (G.GAME.modifiers["blind_purgatory"] and (pseudorandom(pseudoseed('purgatory')) < 0.6)) then
+        ease_hands_played(1)
+        G.GAME.blind.refunded = true
+        return true
+    end'''
+match_indent = true

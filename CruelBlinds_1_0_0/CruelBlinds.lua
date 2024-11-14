@@ -1564,8 +1564,10 @@ function SMODS.current_mod.process_loc_text()
     G.localization.misc.challenge_names["c_very_cruel"] = "Very Cruel"
     G.localization.misc.challenge_names["c_very_crueler"] = "Cruely Cruel"
     G.localization.misc.challenge_names["c_precise"] = "Hyper Precision"
+    G.localization.misc.challenge_names["c_purgatory"] = "Blind Purgatory"
     G.localization.misc.v_text.ch_c_cruel_blinds = {"All blinds past ante {C:attention}1{} are {C:attention}cruel blinds{}."}
     G.localization.misc.v_text.ch_c_always_overshoot = { 'Raise {C:attention}blind size{} by {C:attention}8%{} for every {C:attention}5%{} overscored' }
+    G.localization.misc.v_text.ch_c_blind_purgatory = { '{C:green}60%{} of hands are {C:attention}disallowed{} and {C:attention}refunded{}' }
     G.localization.descriptions.Other.puzzled = {name = "Puzzled", text = {"Randomize rank and suit", "each hand played."}}
     G.localization.misc.labels.puzzled = "Puzzled"
     G.localization.misc.poker_hands["No Hand"] = "No Hand"
@@ -1734,6 +1736,37 @@ table.insert(G.CHALLENGES,#G.CHALLENGES+1,
             },
             banned_other = {
                 {id = 'bl_cruel_overshoot', type = 'blind'},
+            }
+        }
+    }
+)
+
+table.insert(G.CHALLENGES,#G.CHALLENGES+1,
+    {name = 'Blind Purgatory',
+        id = 'c_purgatory',
+        rules = {
+            custom = {
+                {id = 'blind_purgatory'},
+            },
+            modifiers = {
+            }
+        },
+        jokers = {       
+        },
+        consumeables = {
+        },
+        vouchers = {
+        },
+        deck = {
+            type = 'Challenge Deck',
+        },
+        restrictions = {
+            banned_cards = {
+            },
+            banned_tags = {
+            },
+            banned_other = {
+                {id = 'bl_cruel_register', type = 'blind'},
             }
         }
     }
