@@ -1188,6 +1188,7 @@ SMODS.Stake {
     name = "Mean Stake",
     atlas = "chips",
     pos = {x = 0, y = 0},
+    prefix_config = { applied_stakes = { mod = false } },
     applied_stakes = {"white"},
 	loc_txt = {
         name = "Mean Stake",
@@ -1498,6 +1499,7 @@ SMODS.Stake {
     name = "Fool's Stake",
     atlas = "chips",
     pos = {x = 0, y = 2},
+    prefix_config = { applied_stakes = { mod = false } },
     applied_stakes = {"cruel_cruel", "gold"},
 	loc_txt = {
         name = "Fool's Stake",
