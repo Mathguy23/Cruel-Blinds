@@ -8,7 +8,8 @@ priority = 0
 target = 'functions/state_events.lua'
 pattern = 'G.FUNCS.discard_cards_from_highlighted = function(e, hook)'
 position = 'after'
-payload = '''if G.GAME.blind and (G.GAME.blind.name == "The Sink") and not G.GAME.blind.disabled then
+payload = '''
+if G.GAME.blind and (G.GAME.blind.name == "The Sink") and not G.GAME.blind.disabled then
         local hands = evaluate_poker_hand(G.hand.highlighted)
          if next(hands["Flush"]) then
              G.E_MANAGER:add_event(Event({trigger = 'immediate',func = function()
@@ -25,9 +26,12 @@ target = 'functions/state_events.lua'
 pattern = '''if G.GAME.blind.name == 'The Serpent' and'''
 position = 'before'
 payload = '''if G.GAME.blind and (G.GAME.blind.name == "The Jaw") and not G.GAME.blind.disabled and (G.GAME.current_round.hands_played > 0 or G.GAME.current_round.discards_used > 0) then
-        if ((G.GAME.dollars - G.GAME.bankrupt_at) < hand_space) then
+        if ((to_big and to_big(G.GAME.dollars - G.GAME.bankrupt_at) or (G.GAME.dollars - G.GAME.bankrupt_at)) < (to_big and to_big(hand_space) or hand_space)) then
             hand_space = (G.GAME.dollars - G.GAME.bankrupt_at)
-            if ((G.GAME.dollars - G.GAME.bankrupt_at) ~= 0) then
+            if to_big and to_number then
+                hand_space = to_number(hand_space)
+            end
+            if ((to_big and to_big(G.GAME.dollars - G.GAME.bankrupt_at) or (G.GAME.dollars - G.GAME.bankrupt_at)) ~= (to_big and to_big(0) or 0)) then
                 ease_dollars(G.GAME.bankrupt_at-G.GAME.dollars)
                 delay(0.1)
             end
@@ -508,3 +512,5 @@ payload = '''   if not check and (G.GAME.modifiers["blind_purgatory"] and (pseud
         return true
     end'''
 match_indent = true
+
+
