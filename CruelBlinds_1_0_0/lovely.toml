@@ -42,7 +42,7 @@ payload = '''if G.GAME.blind and (G.GAME.blind.name == "The Jaw") and not G.GAME
             end
         end
         if not (G.STATE == G.STATES.TAROT_PACK or G.STATE == G.STATES.SPECTRAL_PACK) and
-            (hand_space <= 0) and (#G.hand.cards == 0) then 
+            (hand_space <= 0) and (#G.hand.cards == 0) and not (G.GAME.chips >= G.GAME.blind.chips) then 
             G.STATE = G.STATES.GAME_OVER; G.STATE_COMPLETE = false 
             return true
         end
