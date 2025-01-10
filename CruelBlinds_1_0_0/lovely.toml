@@ -42,7 +42,7 @@ payload = '''if G.GAME.blind and (G.GAME.blind.name == "The Jaw") and not G.GAME
             end
         end
         if not (G.STATE == G.STATES.TAROT_PACK or G.STATE == G.STATES.SPECTRAL_PACK) and
-            (hand_space <= 0) and (#G.hand.cards == 0) and not (G.GAME.chips >= G.GAME.blind.chips) then 
+            (hand_space <= 0) and (#G.hand.cards == 0) then 
             G.STATE = G.STATES.GAME_OVER; G.STATE_COMPLETE = false 
             return true
         end
@@ -295,62 +295,6 @@ position = 'before'
 payload = '''
 if G.GAME.blind and G.GAME.blind.name == "The Card" and not G.GAME.blind.disabled then
     scoring_hand = {}
-end
-'''
-match_indent = true
-
-[[patches]]
-[patches.pattern]
-target = 'functions/UI_definitions.lua'
-pattern = '''local loc_name = localize{type = 'name_text', key = blind_choice.config.key, set = 'Blind'}'''
-position = 'before'
-payload = '''
-if loc_name == "Daring Group" then
-    loc_target = localize { type = 'raw_descriptions', key = blind_choice.config.key, set = 'Blind', vars = { "???", "???", "???" } }
-end
-if loc_name == "The Mist"then
-    loc_target = localize { type = 'raw_descriptions', key = blind_choice.config.key, set = 'Blind', vars = { 3*G.GAME.probabilities.normal, 4 } }
-end
-if loc_name == "The Puzzle" then
-    loc_target = localize { type = 'raw_descriptions', key = blind_choice.config.key, set = 'Blind', vars = { G.GAME.probabilities.normal, 3 } }
-end
-if loc_name == "Focused Chime" then
-    local display = G.GAME.current_round.least_played_rank
-    if display == 'T' then
-        display = '10'
-    end
-    if display == 'J' then
-        display = 'Jack'
-    end
-    if display == 'Q' then
-        display = 'Queen'
-    end
-    if display == 'K' then
-        display = 'King'
-    end
-    if display == 'A' then
-        display = 'Ace'
-    end
-    local display2 = G.GAME.current_round.least_played_rank2
-    if display2 == 'T' then
-        display2 = '10'
-    end
-    if display2 == 'J' then
-        display2 = 'Jack'
-    end
-    if display2 == 'Q' then
-        display2 = 'Queen'
-    end
-    if display2 == 'K' then
-        display2 = 'King'
-    end
-    if display2 == 'A' then
-        display2 = 'Ace'
-    end
-    loc_target = localize { type = 'raw_descriptions', key = blind_choice.config.key, set = 'Blind', vars = {localize(display, 'ranks'), localize(display2, 'ranks')} }
-end
-if loc_name == "The Register" then
-    loc_target = localize { type = 'raw_descriptions', key = blind_choice.config.key, set = 'Blind', vars = { G.GAME.probabilities.normal, 2 } }
 end
 '''
 match_indent = true
