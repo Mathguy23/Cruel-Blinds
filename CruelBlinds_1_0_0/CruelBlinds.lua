@@ -381,7 +381,7 @@ SMODS.Blind	{
         if not check then
             G.GAME.blind.triggered = true
             local count = G.GAME.hands[handname].played - 1
-            if (count > 0) then
+            if (to_big and (to_big(count) > to_big(0))) or (not to_big and (count > 0)) then
                 G.GAME.blind.chips = math.floor(G.GAME.blind.chips * (1 + (0.04 * count)))
                 G.GAME.blind.chip_text = number_format(G.GAME.blind.chips)
                 G.GAME.blind:set_text()
