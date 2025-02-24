@@ -1793,7 +1793,9 @@ SMODS.Back {
         G.GAME.win_ante = (G.GAME.win_ante or 8) + 1
         G.GAME.used_vouchers['v_directors_cut'] = true
         G.GAME.starting_voucher_count = (G.GAME.starting_voucher_count or 0) + 1
-        Card.apply_to_run(nil, G.P_CENTERS['v_directors_cut'])
+	G.E_MANAGER:add_event(Event({func = function()
+            Card.apply_to_run(nil, G.P_CENTERS['v_directors_cut'])
+    	return true end }))
     end
 }
 
