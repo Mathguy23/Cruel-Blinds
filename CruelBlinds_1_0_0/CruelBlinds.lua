@@ -409,7 +409,7 @@ SMODS.Blind	{
         G.GAME.blind.triggered = false
         if not check then
             local count = math.min(G.GAME.hands[handname].level - 1, math.floor(G.GAME.hands[handname].level / 2))
-            if (count > 0) then
+            if ((to_big and to_big(count) or count) > (to_big and to_big(0) or 0)) then
                 if not check then
                     G.GAME.blind.triggered = true
                     level_up_hand(G.GAME.blind.children.animatedSprite, handname, nil, -count)
