@@ -409,7 +409,7 @@ SMODS.Blind	{
         G.GAME.blind.triggered = false
         if not check then
             local count = math.min(G.GAME.hands[handname].level - 1, math.floor(G.GAME.hands[handname].level / 2))
-            if (count > 0) then
+            if to_big and ((to_big(count) > to_big(0))) or (count > 0) then
                 if not check then
                     G.GAME.blind.triggered = true
                     level_up_hand(G.GAME.blind.children.animatedSprite, handname, nil, -count)
@@ -1583,7 +1583,7 @@ function SMODS.current_mod.reset_game_globals()
         local ranks_held = {}
         for i, j in pairs(G.playing_cards) do
             if (not (j.ability.effect == 'Stone Card' or j.config.center.no_rank)) or j.vampired then
-                if not j.ability.puzzled and not j.debuff then
+                if j.base and j.base.value and not j.ability.puzzled and not j.debuff then
                     ranks_held[j.base.value] = true
                 end
             end
