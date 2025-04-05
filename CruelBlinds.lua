@@ -4,7 +4,7 @@
 --- PREFIX: cruel
 --- MOD_AUTHOR: [mathguy]
 --- MOD_DESCRIPTION: Cruel Blinds
---- VERSION: 1.4.2
+--- VERSION: 1.4.3
 ----------------------------------------------
 ------------MOD CODE -------------------------
 
@@ -1831,6 +1831,15 @@ G.FUNCS.can_play = function(e)
     if e.config.button ~= nil and G.GAME and G.GAME.blind and (G.GAME.blind.name == "Daring Group") and G.GAME.blind.config and G.GAME.blind.config.blinds and ((G.GAME.blind.config.blinds[1] == 'Sapphire Stamp') or (G.GAME.blind.config.blinds[2] == 'Sapphire Stamp') or (G.GAME.blind.config.blinds[3] == 'Sapphire Stamp')) and (#G.hand.highlighted <= 1) then
         e.config.colour = G.C.UI.BACKGROUND_INACTIVE
         e.config.button = nil
+    end
+end
+
+local old_seal = SMODS.DrawSteps['seal'].func
+SMODS.DrawSteps['seal'].func = function(self, layer)
+    old_seal(self, layer)
+    if self.ability and (self.ability.puzzled) then
+        G.shared_seals['Broken'].role.draw_major = self
+        G.shared_seals['Broken']:draw_shader('dissolve', nil, nil, nil, self.children.center)
     end
 end
 
