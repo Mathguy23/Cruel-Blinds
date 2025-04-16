@@ -4,7 +4,7 @@
 --- PREFIX: cruel
 --- MOD_AUTHOR: [mathguy]
 --- MOD_DESCRIPTION: Cruel Blinds
---- VERSION: 1.4.3
+--- VERSION: 1.4.4
 ----------------------------------------------
 ------------MOD CODE -------------------------
 
@@ -426,7 +426,7 @@ SMODS.Blind	{
                     for i2, j2 in ipairs(options) do
                         disperse_table[j2] = disperse_table[j2] + all
                     end
-                    for i = 1, (count - (all * #options)) do
+                    for i = 1, to_number and to_number(count - (all * #options)) or (count - (all * #options)) do
                         local choice = pseudorandom_element(options, pseudoseed('reach'))
                         disperse_table[choice] = disperse_table[choice] + 1
                         for i2, j2 in ipairs(options) do
@@ -1841,6 +1841,14 @@ SMODS.DrawSteps['seal'].func = function(self, layer)
         G.shared_seals['Broken'].role.draw_major = self
         G.shared_seals['Broken']:draw_shader('dissolve', nil, nil, nil, self.children.center)
     end
+end
+
+local old_never_scores = SMODS.never_scores
+function SMODS.never_scores(card)
+    if G.GAME.blind and (G.GAME.blind.name == "The Card") then
+        return true
+    end
+    return old_never_scores(card)
 end
 
 ----------------------------------------------
