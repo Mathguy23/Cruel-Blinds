@@ -25,7 +25,7 @@ match_indent = true
 target = 'functions/state_events.lua'
 pattern = '''if G.GAME.blind.name == 'The Serpent' and'''
 position = 'before'
-payload = '''if G.GAME.blind and (G.GAME.blind.name == "The Jaw") and not G.GAME.blind.disabled and (G.GAME.current_round.hands_played > 0 or G.GAME.current_round.discards_used > 0) then
+payload = '''if G.GAME.blind and (G.GAME.blind.name == "The Jaw") and not G.GAME.blind.disabled then
         if ((to_big and to_big(G.GAME.dollars - G.GAME.bankrupt_at) or (G.GAME.dollars - G.GAME.bankrupt_at)) < (to_big and to_big(hand_space) or hand_space)) then
             hand_space = (G.GAME.dollars - G.GAME.bankrupt_at)
             if to_big and to_number then
@@ -385,68 +385,6 @@ match_indent = true
 
 [[patches]]
 [patches.pattern]
-target = 'functions/state_events.lua'
-pattern = '''local hand_text_set = false'''
-position = 'before'
-payload = '''if G.GAME.blind and (G.GAME.blind.name == "The Steal") and not G.GAME.blind.disabled then
-        if G.GAME.current_round.most_played_poker_hand == "High Card" then
-
-        else
-            poker_hands[G.GAME.current_round.most_played_poker_hand] = {}
-            local top_hand = ""
-            poker_hands.top = nil
-            for _, v in ipairs(G.handlist) do
-                if next(poker_hands[v]) then
-                    top_hand = v
-                    poker_hands.top = poker_hands[v]
-                    break
-                end
-            end
-            text = top_hand or "High Card"
-            non_loc_disp_text = text
-            if text == 'Straight Flush' then
-                local royal = true
-                for j = 1, #scoring_hand do
-                    local rank = SMODS.Ranks[scoring_hand[j].base.value]
-                    royal = royal and (rank.key == 'Ace' or rank.key == '10' or rank.face)
-                end
-                if royal then
-                    non_loc_disp_text = 'Royal Flush'
-                end
-            elseif _hand and _hand.modify_display_text and type(_hand.modify_display_text) == 'function' then
-                non_loc_disp_text = _hand:modify_display_text(_cards, scoring_hand) or disp_text
-            end
-            disp_text = localize(non_loc_disp_text, 'poker_hands')
-            G.GAME.blind:wiggle()
-            new_scoring_hand = poker_hands[text][1]
-            for i=1, #scoring_hand do
-                local card = scoring_hand[i]
-                card.prev_scored = true
-            end
-            for i=1, #new_scoring_hand do
-                local card = new_scoring_hand[i]
-                card.cruel_scored = true
-                if not card.prev_scored then
-                    highlight_card(card,(i-0.999)/5,'up')
-                end
-            end
-            for i=1, #G.play.cards do
-                local card = G.play.cards[i]
-                if not card.cruel_scored and card.prev_scored then
-                    highlight_card(card,(i-0.999)/5,'down')
-                end
-            end
-            scoring_hand = new_scoring_hand
-            update_hand_text({sound = 'button', volume = 0.4, nopulse = nil, delay = 0.4}, {handname=disp_text, level=G.GAME.hands[text].level, mult = G.GAME.hands[text].mult, chips = G.GAME.hands[text].chips})
-            mult = mod_mult(G.GAME.hands[text].mult)
-            hand_chips = mod_chips(G.GAME.hands[text].chips)
-            delay(0.4)
-        end
-    end'''
-match_indent = true
-
-[[patches]]
-[patches.pattern]
 target = 'blind.lua'
 pattern = '''function Blind:debuff_hand(cards, hand, handname, check)'''
 position = 'after'
@@ -457,4 +395,32 @@ payload = '''   if not check and (G.GAME.modifiers["blind_purgatory"] and (pseud
     end'''
 match_indent = true
 
+[[patches]]
+[patches.pattern]
+target = 'functions/state_events.lua'
+pattern = '''if G.GAME.round_resets.blind == G.P_BLINDS.bl_small then
+    G.GAME.round_resets.blind_states.Small = 'Defeated''''
+position = 'after'
+payload = '''elseif G.GAME.blind_on_deck == 'Small' then
+    G.GAME.round_resets.blind_states.Small = 'Defeated''''
+match_indent = true
 
+[[patches]]
+[patches.pattern]
+target = 'functions/state_events.lua'
+pattern = '''if G.GAME.round_resets.blind == G.P_BLINDS.bl_small then
+    G.GAME.round_resets.blind_states.Small = 'Current''''
+position = 'after'
+payload = '''elseif G.GAME.blind_on_deck == 'Small' then
+    G.GAME.round_resets.blind_states.Small = 'Current'
+    G.GAME.current_boss_streak = 0
+    blhash = 'S''''
+match_indent = true
+
+[[patches]]
+[patches.pattern]
+target = 'functions/UI_definitions.lua'
+pattern = '''return (G.GAME.hands[handname].visible) and'''
+position = 'after'
+payload = '''(not (G.GAME and G.GAME.blind and (G.GAME.blind.name == "The Steal") and not G.GAME.blind.disabled) or (handname ~= G.GAME.current_round.most_played_poker_hand)) and'''
+match_indent = true

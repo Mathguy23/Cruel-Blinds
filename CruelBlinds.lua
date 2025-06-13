@@ -4,7 +4,7 @@
 --- PREFIX: cruel
 --- MOD_AUTHOR: [mathguy]
 --- MOD_DESCRIPTION: Cruel Blinds
---- VERSION: 1.4.4
+--- VERSION: 1.4.5
 ----------------------------------------------
 ------------MOD CODE -------------------------
 
@@ -38,6 +38,8 @@ SMODS.Atlas({ key = "chips", atlas_table = "ASSET_ATLAS", path = "chips.png", px
 SMODS.Atlas({ key = "stickers", atlas_table = "ASSET_ATLAS", path = "stickers.png", px = 71, py = 95})
 
 SMODS.Atlas({ key = "stickers2", atlas_table = "ASSET_ATLAS", path = "stickers2.png", px = 71, py = 95})
+
+SMODS.Atlas({ key = "jokers", atlas_table = "ASSET_ATLAS", path = "jokers.png", px = 71, py = 95})
 
 SMODS.Blind	{
     loc_txt = {
@@ -132,6 +134,22 @@ SMODS.Blind	{
         return "You must play a poker hand."
     end
 }
+
+local old_evaluate_poker_hand = evaluate_poker_hand
+function evaluate_poker_hand(hand)
+    local results = old_evaluate_poker_hand(hand)
+    if G.GAME and G.GAME.blind and (G.GAME.blind.name == 'The Steal') and not G.GAME.blind.disabled then
+        results[G.GAME.current_round.most_played_poker_hand] = {}
+    end
+    results.top = nil
+    for _, v in ipairs(G.handlist) do
+        if not results.top and results[v] then
+            results.top = results[v]
+            break
+        end
+    end
+    return results
+end
 
 SMODS.Blind	{
     loc_txt = {
@@ -1824,6 +1842,352 @@ SMODS.Back {
     end,
     dependencies = { "Cryptid" }
 }
+
+-------Finity crossmod--------
+
+cruel_blinds_finity_global_flag = nil
+
+function initialize_cruel_finity_stuff()
+    FinisherBossBlindStringMap['bl_cruel_daring'] = {'j_cruel_daring2', 'Daring Group'}
+    FinisherBossBlindStringMap['bl_cruel_muck'] = {'j_cruel_muck2', 'Common Muck'}
+    FinisherBossBlindStringMap['bl_cruel_overshoot'] = {'j_cruel_overshoot2', 'Obscure Overshoot'}
+    FinisherBossBlindStringMap['bl_cruel_chime'] = {'j_cruel_chime2', 'Focused Chime'}
+    cruel_blinds_finity_global_flag = true
+end
+
+local old_click = Card.click
+function Card:click()
+    if FinisherBossBlindStringMap and not cruel_blinds_finity_global_flag then
+        initialize_cruel_finity_stuff()
+    end
+    return old_click(self)
+end
+
+local old_end_round = end_round
+function end_round()
+    if FinisherBossBlindStringMap and not cruel_blinds_finity_global_flag then
+        initialize_cruel_finity_stuff()
+    end
+    return old_end_round()
+end
+
+local old_start_run = Game.start_run
+function Game:start_run(args)
+    if FinisherBossBlindStringMap and not cruel_blinds_finity_global_flag then
+        initialize_cruel_finity_stuff()
+    end
+    return old_start_run(self, args)
+end
+
+SMODS.Joker {
+    key = 'daring2',
+    name = "Daring Group2",
+    rarity = 'finity_showdown',
+    atlas = 'jokers',
+    pos = {x = 0, y = 0},
+    soul_pos = {x = 1, y = 0},
+    cost = 10,
+    dependencies = {'finity'},
+    loc_txt ={
+        name = 'Daring Group',
+        text = {
+            'Every Blind is a {C:attention}Showdown{}',
+            '{C:attention}Blind{}, sell this joker to',
+            'create {C:attention}Chicot{}',
+            '{C:inactive,s:0.8}Art by missingnumber{}'
+        }
+    },
+    config = {},
+    in_pool = function(self)
+        return false, {allow_duplicates = false}
+    end,
+    calculate = function(self, card, context)
+        if context.selling_self then
+            G.GAME.joker_buffer = G.GAME.joker_buffer + 1
+            G.E_MANAGER:add_event(Event({
+                func = function() 
+                    local card = create_card('Joker', G.jokers, nil, nil, nil, nil, 'j_chicot', 'dar')
+                    card:add_to_deck()
+                    G.jokers:emplace(card)
+                    card:start_materialize()
+                    G.GAME.joker_buffer = 0
+                    return true
+            end}))
+            card_eval_status_text(card, 'extra', nil, nil, nil, {message = localize('k_plus_joker'), colour = G.C.BLUE}) 
+        end
+    end,
+    add_to_deck = function(self, card, from_debuff)
+        for i, j in ipairs({'Small', 'Big', 'Boss'}) do
+            local key = G.GAME.round_resets.blind_choices[j]
+            if key then
+                if not G.P_BLINDS[key] or not G.P_BLINDS[key].boss or not G.P_BLINDS[key].boss.showdown then
+                    G.GAME.round_resets.blind_choices[j] = get_new_showdown(j)
+                end
+            end
+        end
+    end,
+    loc_vars = function(self, info_queue, card)
+        info_queue[#info_queue + 1] = G.P_CENTERS['j_chicot']
+        return {vars = {}}
+    end,
+}
+
+local old_reset_blinds = reset_blinds
+function reset_blinds()
+    if G.GAME.round_resets.blind_states.Boss == 'Defeated' then
+        G.GAME.round_resets.blind_choices.Small = 'bl_small'
+        G.GAME.round_resets.blind_choices.Big = 'bl_big'
+    end
+    old_reset_blinds()
+    if next(SMODS.find_card('j_cruel_daring2')) then
+        for i, j in ipairs({'Small', 'Big', 'Boss'}) do
+            local key = G.GAME.round_resets.blind_choices[j]
+            if key then
+                if not G.P_BLINDS[key] or not G.P_BLINDS[key].boss or not G.P_BLINDS[key].boss.showdown then
+                    G.GAME.round_resets.blind_choices[j] = get_new_showdown(j)
+                end
+            end
+        end
+    end
+end
+
+function get_new_showdown(key)
+    
+    local eligible_bosses = {}
+    for k, v in pairs(G.P_BLINDS) do
+        if not v.boss or not v.boss.showdown then
+        elseif G.GAME.modifiers["cruel_blinds"] and (G.GAME.round_resets.ante >= 2) and (v.boss.hardcore ~= true) then
+        
+        elseif G.GAME.modifiers["cruel_blinds_all"] and (v.boss.hardcore ~= true) then
+        
+        elseif v.boss.no_penultimate and (G.GAME.round_resets.ante == G.GAME.win_ante - 1) then
+
+        elseif v.in_pool and type(v.in_pool) == 'function' then
+            local res, options = v:in_pool()
+            eligible_bosses[k] = res and true or nil
+        else
+            eligible_bosses[k] = true
+        end
+    end
+    for k, v in pairs(G.GAME.banned_keys) do
+        if eligible_bosses[k] then eligible_bosses[k] = nil end
+    end
+
+    local min_use = 100
+    for k, v in pairs(G.GAME.bosses_used) do
+        if eligible_bosses[k] then
+            eligible_bosses[k] = v
+            if eligible_bosses[k] <= min_use then 
+                min_use = eligible_bosses[k]
+            end
+        end
+    end
+    for k, v in pairs(eligible_bosses) do
+        if eligible_bosses[k] then
+            if eligible_bosses[k] > min_use then 
+                eligible_bosses[k] = nil
+            end
+        end
+    end
+    local _, boss = pseudorandom_element(eligible_bosses, pseudoseed('boss' .. key))
+    G.GAME.bosses_used[boss] = G.GAME.bosses_used[boss] + 1
+    
+    return boss
+end
+
+SMODS.Joker {
+    key = 'muck2',
+    name = "Daring Muck2",
+    rarity = 'finity_showdown',
+    atlas = 'jokers',
+    pos = {x = 0, y = 1},
+    soul_pos = {x = 1, y = 1},
+    cost = 10,
+    dependencies = {'finity'},
+    loc_txt ={
+        name = 'Common Muck',
+        text = {
+            "When {C:attention}Blind{} is selected,",
+            "create {C:attention}a {C:red}Rare{C:attention} Joker",
+            '{C:inactive}(must have room){}',
+            '{C:inactive,s:0.8}Art by missingnumber{}'
+        }
+    },
+    config = {},
+    in_pool = function(self)
+        return false, {allow_duplicates = false}
+    end,
+    calculate = function(self, card, context)
+        if context.setting_blind and not self.getting_sliced and (G.jokers.config.card_limit > (#G.jokers.cards + G.GAME.joker_buffer)) then
+            G.GAME.joker_buffer = G.GAME.joker_buffer + 1
+            G.E_MANAGER:add_event(Event({
+                func = function() 
+                    local card = create_card('Joker', G.jokers, nil, 0.99, nil, nil, nil, 'muc')
+                    card:add_to_deck()
+                    G.jokers:emplace(card)
+                    card:start_materialize()
+                    G.GAME.joker_buffer = 0
+                    return true
+            end}))
+            card_eval_status_text(card, 'extra', nil, nil, nil, {message = localize('k_plus_joker'), colour = G.C.BLUE}) 
+        end
+    end,
+}
+
+function kinda_to_big(x)
+    if to_big then
+        return to_big(x)
+    end
+    return x
+end
+
+SMODS.Joker {
+    key = 'overshoot2',
+    name = "Obscure Overshoot2",
+    rarity = 'finity_showdown',
+    atlas = 'jokers',
+    pos = {x = 0, y = 2},
+    soul_pos = {x = 1, y = 2},
+    cost = 10,
+    dependencies = {'finity'},
+    loc_txt ={
+        name = 'Obscure Overshoot',
+        text = {
+            "At {C:attention}end{} of {C:attention}round{}, Gains {X:mult,C:white}X#1#{}",
+            "for each {C:attention}percent{} overscored",
+            'on a {C:attention}logarithmic{} scale',
+            '{C:inactive}(Currently {X:mult,C:white}X#2#{C:inactive} Mult){}',
+            '{C:inactive,s:0.8}Art by missingnumber{}'
+        }
+    },
+    config = {extra = {Xmult = 1, mod_x_mult = 0.1}},
+    in_pool = function(self)
+        return false, {allow_duplicates = false}
+    end,
+    calculate = function(self, card, context)
+        if context.end_of_round and not context.individual and not context.repetition and not context.blueprint then
+            if (kinda_to_big(G.GAME.chips) > kinda_to_big(0)) and (kinda_to_big(G.GAME.blind.chips) > kinda_to_big(0)) then
+                local percent = math.floor(100 * (math.log(G.GAME.chips) / math.log(G.GAME.blind.chips) - 1))
+                if kinda_to_big(percent) > kinda_to_big(0) then
+                    card.ability.x_mult = card.ability.x_mult + card.ability.extra.mod_x_mult * percent
+                        return {
+                            message = localize{type='variable',key='a_xmult',vars={card.ability.x_mult}},
+                            colour = G.C.MULT
+                        }
+                end
+            end
+        end
+    end,
+    loc_vars = function(self, info_queue, card)
+        return {vars = {card.ability.extra.mod_x_mult, card.ability.x_mult}}
+    end,
+}
+
+SMODS.Joker {
+    key = 'chime2',
+    name = "Focused Chime2",
+    rarity = 'finity_showdown',
+    atlas = 'jokers',
+    pos = {x = 0, y = 3},
+    soul_pos = {x = 1, y = 3},
+    cost = 10,
+    dependencies = {'finity'},
+    loc_txt = {
+        name = 'Focused Chime',
+        text = {
+            "Retrigger the {C:attention}13th{} most",
+            "{C:attention}frequent{} rank in your deck",
+            '{C:attention}once{} for {C:attention}each{} card with',
+            'that {C:attention}rank{},',
+            '{C:attention}+#3#{} hand size',
+            '{C:inactive}({C:attention}#1#{C:inactive}, {C:attention}#2#{C:inactive} Retriggers){}',
+            '{C:inactive,s:0.8}Art by missingnumber{}'
+        }
+    },
+    config = {h_size = 13},
+    in_pool = function(self)
+        return false, {allow_duplicates = false}
+    end,
+    calculate = function(self, card, context)
+        if context.repetition and not context.individual then
+            if context.other_card:get_id() == (G.GAME.cruel_rank_rankings and G.GAME.cruel_rank_rankings[13] and G.GAME.cruel_rank_rankings[13][1] and SMODS.Ranks[G.GAME.cruel_rank_rankings[13][1]].id or nil) then
+                return {
+                    message = localize('k_again_ex'),
+                    repetitions = G.GAME.cruel_rank_rankings and G.GAME.cruel_rank_rankings[13] and G.GAME.cruel_rank_rankings[13][2] or 0,
+                    card = card
+                }
+            end
+        end
+    end,
+    loc_vars = function(self, info_queue, card)
+        return {vars = {localize(G.GAME.cruel_rank_rankings and G.GAME.cruel_rank_rankings[13] and G.GAME.cruel_rank_rankings[13][1] or '2', 'ranks'), G.GAME.cruel_rank_rankings and G.GAME.cruel_rank_rankings[13] and G.GAME.cruel_rank_rankings[13][2] or 0, card.ability.h_size}}
+    end,
+}
+
+function redo_rank_ranks()
+    if not G.playing_cards or (G.STAGE ~= G.STAGES.RUN) then
+        return
+    end
+    local freq = {}
+    for i, j in pairs(SMODS.Ranks) do
+        local key = j.key
+        local id = j.id
+        for k = 1, #G.playing_cards do
+            if G.playing_cards[k]:get_id() == id then
+                freq[key] = (freq[key] or 0) + 1
+            end
+        end
+    end
+    local ranking = {}
+    for i, j in pairs(freq) do
+        local index = 1
+        while ranking[index] and ((j < ranking[index][2]) or ((j == ranking[index][2]) and (SMODS.Ranks[i].nominal < SMODS.Ranks[ranking[index][1]].nominal)) or ((j == ranking[index][2]) and (SMODS.Ranks[i].nominal == SMODS.Ranks[ranking[index][1]].nominal) and (SMODS.Ranks[i].id < SMODS.Ranks[ranking[index][1]].id))) do
+            index = index + 1
+        end
+        table.insert(ranking, index, {i, j})
+    end
+    G.GAME.cruel_rank_rankings = ranking
+end
+
+local old_remove = Card.remove
+function Card:remove()
+    local result = old_remove(self)
+    redo_rank_ranks()
+    return result
+end
+
+local old_set_base = Card.set_base
+function Card:set_base(card, initial)
+    local result = old_set_base(self, card, initial)
+    if self.playing_card then
+        redo_rank_ranks()
+    end
+    return result
+end
+
+local old_copy_card = copy_card
+function copy_card(other, new_card, card_scale, playing_card, strip_edition)
+    local result = old_copy_card(other, new_card, card_scale, playing_card, strip_edition)
+    G.E_MANAGER:add_event(Event({
+        trigger = 'immediate',
+        func = (function()
+            redo_rank_ranks()
+            return true
+        end)
+    }))
+    return result
+end
+
+local old_set_ability = Card.set_ability
+function Card:set_ability(center, initial, delay_sprites)
+    local result = old_set_ability(self, center, initial, delay_sprites)
+    if self.playing_card then
+        redo_rank_ranks()
+    end
+    return result
+end
+
+----------------------------------------
 
 local old_can_play = G.FUNCS.can_play
 G.FUNCS.can_play = function(e)
