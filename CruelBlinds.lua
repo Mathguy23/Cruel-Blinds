@@ -4,7 +4,7 @@
 --- PREFIX: cruel
 --- MOD_AUTHOR: [mathguy]
 --- MOD_DESCRIPTION: Cruel Blinds
---- VERSION: 1.4.5
+--- VERSION: 1.4.5a
 ----------------------------------------------
 ------------MOD CODE -------------------------
 
@@ -138,7 +138,7 @@ SMODS.Blind	{
 local old_evaluate_poker_hand = evaluate_poker_hand
 function evaluate_poker_hand(hand)
     local results = old_evaluate_poker_hand(hand)
-    if G.GAME and G.GAME.blind and (G.GAME.blind.name == 'The Steal') and not G.GAME.blind.disabled then
+    if G.GAME and G.GAME.blind and (G.GAME.blind.name == 'The Steal') and not G.GAME.blind.disabled and (G.GAME.current_round.most_played_poker_hand ~= 'High Card') then
         results[G.GAME.current_round.most_played_poker_hand] = {}
     end
     results.top = nil
